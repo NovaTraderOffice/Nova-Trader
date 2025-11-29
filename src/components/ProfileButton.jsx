@@ -9,10 +9,10 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
   DropdownMenuGroup,
-} from '@/components/ui/dropdown-menu';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+} from '@/components/ui/Dropdown-menu';
+import { Avatar, AvatarFallback } from '@/components/ui/Avatar';
 import { AuthProvider, useAuth } from '@/contexts/AuthContext';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/components/ui/Button';
 import { User, LogIn, LogOut, Package } from 'lucide-react';
 import { useToast } from './ui/use-toast';
 
