@@ -4,7 +4,7 @@ import { Helmet } from 'react-helmet';
 import { useParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { CreditCard, Lock } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/components/ui/Button';
 import { useToast } from '@/components/ui/use-toast';
 
 const CheckoutPage = () => {

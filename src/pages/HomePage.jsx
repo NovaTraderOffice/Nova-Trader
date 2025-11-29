@@ -2,7 +2,7 @@ import React from 'react';
 import { Helmet } from 'react-helmet';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/components/ui/Button';
 import { Star, Zap, BarChart2 } from 'lucide-react';
 import WelcomeMessage from '@/components/WelcomeMessage';
 import HeroImage from '@/components/HeroImage';
