@@ -2,7 +2,7 @@ import React from 'react';
 import { Helmet } from 'react-helmet';
 import { motion } from 'framer-motion';
 import { ExternalLink, BarChart2, Briefcase, Zap, BrainCircuit } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/components/ui/Button';
 import { Link } from 'react-router-dom';
 
 const newImageUrl = "https://horizons-cdn.hostinger.com/dc9b4162-1bbf-4707-8c44-a1438cae6f40/fd33369c0a9b35b33aa6fd8809a8022f.png";
