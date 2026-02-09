@@ -27,3 +27,24 @@ body {
     @apply bg-black/70 backdrop-blur-sm border border-yellow-600/30 rounded-xl shadow-2xl;
   }
 }
+
+@keyframes ticker {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+.animate-ticker {
+  animation: ticker 30s linear infinite;
+}
+
+.animate-ticker:hover {
+  animation-play-state: paused;
+}
+
+.animate-marquee {
+  animation: ticker 80s linear infinite;
+}
+
+.animate-marquee:hover {
+  animation-play-state: paused;
+}

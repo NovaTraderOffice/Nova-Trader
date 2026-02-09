@@ -1,14 +1,19 @@
-
 import React from 'react';
 import { Helmet } from 'react-helmet';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/Button';
 import { Check, Zap } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
+import { useNavigate, useLocation } from 'react-router-dom';
+import ROICalculator from '@/components/ROICalculator';
 
 const SubscriptionsPage = () => {
   const { toast } = useToast();
   const { user } = useAuth();
+
+  const navigate = useNavigate();
+  const location = useLocation();
   
   const subscription = {
     name: 'VIP Üyelik',
@@ -25,10 +30,10 @@ const SubscriptionsPage = () => {
   const handleSubscribeClick = () => {
     if (!user) {
       toast({
-        variant: "destructive",
         title: "Giriş Yapmalısınız",
-        description: "Abone olmak için lütfen giriş yapın veya kayıt olun.",
+        description: "Abonelik için yönlendiriliyorsunuz...",
       });
+      navigate('/giris', { state: { from: location } });
     } else {
       toast({
         title: "🚧 Ödeme Sistemi Bekleniyor",
@@ -52,20 +57,20 @@ const SubscriptionsPage = () => {
             className="text-center mb-12"
           >
             <h1 className="text-4xl md:text-5xl font-bold mb-4">
-              <span className="gold-text">NovaTrader VIP Üyelik</span>
+              <span className="text-yellow-500">NovaTrader VIP Üyelik</span>
             </h1>
             <p className="text-gray-400 max-w-3xl mx-auto">
               Trading yolculuğunuzda zirveye oynamak için ihtiyacınız olan her şey tek bir pakette. Elit topluluğumuza katılın ve farkı hissedin.
             </p>
           </motion.div>
 
-          <div className="premium-card-highlighted max-w-4xl mx-auto overflow-hidden rounded-2xl border-2 border-yellow-500/50">
+          <div className="bg-[#1a1a1a] max-w-4xl mx-auto overflow-hidden rounded-2xl border-2 border-yellow-500/50 shadow-[0_0_30px_rgba(234,179,8,0.1)]">
             <div className="grid md:grid-cols-2 items-center">
               <div className="p-8 md:p-12 order-2 md:order-1">
                 <div className="flex items-center bg-yellow-500/10 text-yellow-400 text-sm font-bold px-3 py-1 rounded-full mb-4 self-start w-fit">
                   <Zap className="w-4 h-4 mr-1.5" />TÜM AYRICALIKLAR DAHİL
                 </div>
-                <h2 className="text-3xl font-bold mb-6">{subscription.name}</h2>
+                <h2 className="text-3xl font-bold mb-6 text-white">{subscription.name}</h2>
                 
                 <ul className="space-y-3 mb-8">
                   {features.map((feature) => (
@@ -80,13 +85,13 @@ const SubscriptionsPage = () => {
                   <div className="flex items-baseline justify-between">
                     <p className="text-gray-400">Aylık Üyelik</p>
                     <div>
-                      <span className="text-4xl font-bold gold-text">{subscription.price}€</span>
+                      <span className="text-4xl font-bold text-yellow-500">{subscription.price}€</span>
                       <span className="text-gray-400">/ay</span>
                     </div>
                   </div>
                 </div>
 
-                <Button onClick={handleSubscribeClick} className="w-full gold-gradient text-black font-bold text-lg py-6 hover:opacity-90 transition-all duration-300 transform hover:scale-105">
+                <Button onClick={handleSubscribeClick} className="w-full bg-yellow-500 text-black font-bold text-lg py-6 hover:bg-yellow-400 hover:scale-105 transition-all duration-300">
                   Hemen VIP Ol
                 </Button>
               </div>
@@ -96,6 +101,7 @@ const SubscriptionsPage = () => {
             </div>
           </div>
         </div>
+        <ROICalculator />
       </div>
     </>
   );

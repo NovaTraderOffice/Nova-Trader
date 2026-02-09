@@ -1,13 +1,21 @@
 import React from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
-import { Loader2 } from 'lucide-react';
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { Loader2, Send } from 'lucide-react';
+
+// HOOKS
+import { useAuth } from '@/contexts/AuthContext';
 
 // IMPORTS
-import { AuthProvider, useAuth } from './contexts/AuthContext'; // <--- NEW IMPORT
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
+import ScrollToTop from '@/components/ScrollToTop';
+import PrivacyNotice from '@/components/PrivacyNotice';
+import TickerTape from '@/components/TickerTape';
+import ScrollProgress from '@/components/ScrollProgress';
+import SocialProof from '@/components/SocialProof';
 
 // PAGES
+import ProfilePage from '@/pages/ProfilePage';
 import HomePage from '@/pages/HomePage';
 import LoginPage from '@/pages/LoginPage';
 import RegisterPage from '@/pages/RegisterPage';
@@ -19,6 +27,7 @@ import ReviewsPage from '@/pages/ReviewsPage';
 import ContactPage from '@/pages/ContactPage';
 import SubscriptionsPage from '@/pages/SubscriptionsPage';
 import TradingToolsPage from '@/pages/TradingToolsPage';
+import NotFoundPage from '@/pages/NotFoundPage';
 
 const GlobalLoader = () => (
   <div className="fixed inset-0 bg-black/90 flex justify-center items-center z-[9999]">
@@ -31,8 +40,10 @@ const GlobalLoader = () => (
 
 const PrivateRoute = ({ children }) => {
   const { user, loading } = useAuth();
+  const location = useLocation();
+
   if (loading) return <GlobalLoader />;
-  return user ? children : <Navigate to="/giris" replace />;
+  return user ? children : <Navigate to="/giris" state={{ from: location }} replace />;
 };
 
 const AuthRoute = ({ children }) => {
@@ -42,10 +53,17 @@ const AuthRoute = ({ children }) => {
 };
 
 function App() {
+  const TELEGRAM_SUPPORT_USERNAME = "NovaTrader_SupportBot"; 
+
   return (
-    <AuthProvider>
-      <div className="min-h-screen flex flex-col bg-[#0f0f0f] text-white">
+    <> 
+      <ScrollToTop />
+      <ScrollProgress />
+      
+      <div className="min-h-screen flex flex-col bg-[#0f0f0f] text-white relative">
+        <TickerTape />
         <Header />
+   
         <main className="flex-grow">
           <Routes>
             <Route path="/" element={<HomePage />} />
@@ -55,17 +73,37 @@ function App() {
             <Route path="/yorumlar" element={<ReviewsPage />} />
             <Route path="/iletisim" element={<ContactPage />} />
             <Route path="/ticaret-araclari" element={<TradingToolsPage />} />
+
+            <Route path="/profil" element={<PrivateRoute><ProfilePage /></PrivateRoute>} />
             
             <Route path="/giris" element={<AuthRoute><LoginPage /></AuthRoute>} />
             <Route path="/kayit" element={<AuthRoute><RegisterPage /></AuthRoute>} />
             
             <Route path="/urunlerim" element={<PrivateRoute><MyProductsPage /></PrivateRoute>} />
             <Route path="/odeme/:productId" element={<PrivateRoute><CheckoutPage /></PrivateRoute>} />
+
+            <Route path="*" element={<NotFoundPage />} />
           </Routes>
         </main>
+        
         <Footer />
+        <a 
+          href={`https://t.me/${TELEGRAM_SUPPORT_USERNAME}`} 
+          target="_blank" 
+          rel="noreferrer"
+          className="fixed bottom-6 right-6 bg-blue-500 hover:bg-blue-600 text-white p-4 rounded-full shadow-[0_0_15px_rgba(59,130,246,0.5)] z-50 transition-transform hover:scale-110 flex items-center gap-2 group"
+          title="Destek Hattı"
+        >
+          <Send className="w-6 h-6 fill-current" />
+          <span className="font-bold hidden md:inline max-w-0 overflow-hidden group-hover:max-w-xs transition-all duration-500 ease-in-out whitespace-nowrap">
+            Destek / Support
+          </span>
+        </a>
+       
+        <SocialProof />
+        <PrivacyNotice />
       </div>
-    </AuthProvider>
+    </>
   );
 }
 

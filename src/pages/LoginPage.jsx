@@ -1,21 +1,25 @@
-
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet';
-import { motion } from 'framer-motion';
+import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Label } from '@/components/ui/Label';
-import { Loader2, LogIn } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
+import { Loader2, Eye, EyeOff } from 'lucide-react'; // Importuri comasate
+import { useAuth } from '@/contexts/AuthContext';
+import { useLocation } from 'react-router-dom';
 
 const LoginPage = () => {
   const navigate = useNavigate();
-  const { user, signIn } = useAuth();
+  const location = useLocation();
+  const { signIn, user } = useAuth();
   const { toast } = useToast();
+  
+  const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const from = location.state?.from?.pathname || '/urunlerim';
 
   useEffect(() => {
     if (user) {
@@ -26,70 +30,88 @@ const LoginPage = () => {
   const handleLogin = async (e) => {
     e.preventDefault();
     setLoading(true);
-    await signIn(email, password);
+
+    const result = await signIn(email, password);
+
+if (result.success) {
+      toast({
+        title: "Tekrar Hoş Geldiniz!", // Bine ai revenit
+        description: "Giriş başarılı.", // Autentificare reusita
+        className: "bg-green-600 text-white border-none"
+      });
+      navigate(from, { replace: true });
+    } else {
+      toast({
+        variant: "destructive",
+        title: "Hata", // Eroare
+        description: result.error || "Bir şeyler ters gitti.", // Ceva nu a mers bine
+      });
+    }
+
     setLoading(false);
   };
 
   return (
     <>
       <Helmet>
-        <title>Giriş Yap - NovaTrader</title>
-        <meta name="description" content="Hesabınıza giriş yapın ve özel eğitim içeriklerinize erişin." />
+        <title>Giriş Yap - Nova Trader</title>
       </Helmet>
-      <div className="container mx-auto px-4 py-20 flex items-center justify-center">
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="w-full max-w-md"
-        >
-          <div className="premium-card p-8 md:p-10">
-            <div className="text-center mb-8">
-              <h1 className="text-3xl font-bold gold-text">Giriş Yap</h1>
-              <p className="text-gray-400 mt-2">Eğitimlerinize kaldığınız yerden devam edin.</p>
+      <div className="container mx-auto px-4 py-20 flex items-center justify-center min-h-[80vh]">
+        <div className="premium-card p-8 w-full max-w-md bg-[#1a1a1a] border border-yellow-600/20 rounded-xl shadow-lg">
+          <h1 className="text-3xl font-bold mb-6 text-center text-yellow-500">Giriş Yap</h1>
+          
+          <form onSubmit={handleLogin} className="space-y-6">
+            <div className="space-y-2">
+              <Label className="text-white">E-posta</Label>
+              <Input 
+                type="email" 
+                placeholder="ornek@mail.com" 
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                className="bg-gray-900 border-gray-700 text-white"
+              />
             </div>
-            <form onSubmit={handleLogin} className="space-y-6">
-              <div className="space-y-2">
-                <Label htmlFor="email" className="text-gray-300">E-posta</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="isim@example.com"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="bg-gray-900 border-gray-700 text-white"
-                  autoComplete="email"
-                />
+            
+            <div className="space-y-2">
+              <div className="flex justify-between">
+                <Label className="text-white">Şifre</Label>
+                <Link to="/reset-password" class="text-xs text-yellow-500 hover:underline">Şifremi Unuttum?</Link>
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="password">Şifre</Label>
-                <Input
-                  id="password"
-                  type="password"
-                  placeholder="••••••••"
-                  required
+              
+              {/* MODIFICAREA ESTE AICI: Wrapper Relative + Buton Toggle */}
+              <div className="relative">
+                <Input 
+                  type={showPassword ? "text" : "password"} 
+                  placeholder="••••••••" 
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="bg-gray-900 border-gray-700 text-white"
-                  autoComplete="current-password"
+                  required
+                  className="bg-gray-900 border-gray-700 text-white pr-10" // pr-10 face loc iconitei
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white focus:outline-none"
+                >
+                  {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                </button>
               </div>
-              <Button type="submit" className="w-full gold-gradient text-black font-bold text-lg py-3 hover:opacity-90" disabled={loading}>
-                {loading ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <LogIn className="mr-2 h-5 w-5" />}
-                Giriş Yap
-              </Button>
-            </form>
-            <div className="mt-6 text-center">
-              <p className="text-sm text-gray-400">
-                Hesabınız yok mu?{' '}
-                <span onClick={() => navigate('/kayit')} className="font-semibold text-yellow-500 hover:text-yellow-400 cursor-pointer">
-                  Hesap Oluşturun
-                </span>
-              </p>
+
             </div>
-          </div>
-        </motion.div>
+
+            <Button type="submit" className="w-full bg-yellow-500 hover:bg-yellow-600 text-black font-bold h-11" disabled={loading}>
+              {loading ? <Loader2 className="animate-spin mr-2" /> : 'Giriş Yap'}
+            </Button>
+          </form>
+
+          <p className="mt-6 text-center text-sm text-gray-400">
+            Hesabınız yok mu?{' '}
+            <Link to="/kayit" className="font-medium text-yellow-500 hover:underline">
+              Kayıt Olun
+            </Link>
+          </p>
+        </div>
       </div>
     </>
   );

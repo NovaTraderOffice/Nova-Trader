@@ -1,16 +1,20 @@
 import React from 'react';
-import { AuthProvider, useAuth } from '@/contexts/AuthContext';
 import { Helmet } from 'react-helmet';
-import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { Link, useNavigate, useLocation } from 'react-router-dom'; // <--- Importuri Navigare
 import { Button } from '@/components/ui/Button';
 import { Clock, Star, Zap, Award } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
+import { API_URL, getHeaders } from '@/lib/api'; // <--- Import API
 
 const CoursesPage = () => {
   const { toast } = useToast();
   const { user } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
   
+  // --- DATELE CURSURILOR (Trebuie să fie aici!) ---
   const courses = [
     {
       id: '1',
@@ -49,19 +53,41 @@ const CoursesPage = () => {
     }
   ];
 
-  const handleBuyClick = (e) => {
+  // --- LOGICA DE CUMPĂRARE ---
+  const handleBuyClick = async (course) => {
+    // 1. Dacă NU e logat -> Redirect la Login cu memorie
     if (!user) {
-      e.preventDefault();
       toast({
-        variant: "destructive",
         title: "Giriş Yapmalısınız",
-        description: "Kursu satın almak için lütfen giriş yapın veya kayıt olun.",
+        description: "Kursu satın almak için lütfen giriş yapın.",
       });
-    } else {
+      navigate('/giris', { state: { from: location } });
+      return;
+    }
+
+    // 2. Dacă E logat -> Inițiem plata (Momentan doar mesaj)
+    try {
+      console.log("Comandă pentru:", course.name);
+      
+      // Aici va veni codul de Stripe (decomentezi când e gata backend-ul)
+      /*
+      const response = await fetch(`${API_URL}/create-checkout-session`, {
+        method: 'POST',
+        headers: getHeaders(),
+        body: JSON.stringify({ productName: course.name, price: course.price }),
+      });
+      const data = await response.json();
+      if (data.url) window.location.href = data.url;
+      */
+
       toast({
         title: "🚧 Ödeme Sistemi Bekleniyor",
         description: "Ödeme entegrasyonu yakında eklenecek!",
       });
+
+    } catch (error) {
+      console.error("Eroare:", error);
+      toast({ variant: "destructive", title: "Eroare", description: "Ceva nu a mers bine." });
     }
   };
 
@@ -69,7 +95,7 @@ const CoursesPage = () => {
     <>
       <Helmet>
         <title>Kurslar - NovaTrader</title>
-        <meta name="description" content="NovaTrader'ın profesyonel borsa ve yatırım eğitim kurslarını keşfedin. Uzman eğitmenlerden öğrenin." />
+        <meta name="description" content="NovaTrader'ın profesyonel borsa ve yatırım eğitim kurslarını keşfedin." />
       </Helmet>
 
       <div className="bg-[#0f0f0f] text-white">
@@ -84,15 +110,15 @@ const CoursesPage = () => {
               <span className="gold-text">Eğitim Kursları</span>
             </h1>
             <p className="text-gray-400 mb-12 max-w-2xl mx-auto">
-              Profesyonel eğitmenlerimizden öğrenin ve trading becerilerinizi bir üst seviyeye taşıyın.
+              Profesyonel eğitmenlerimizden öğrenin ve trading becerilerinizi geliştirin.
             </p>
           </motion.div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-stretch">
             {courses.map((course, index) => (
               course.isBundle 
-                ? <BundleCard key={course.id} course={course} index={index} handleBuyClick={handleBuyClick} user={user} />
-                : <CourseCard key={course.id} course={course} index={index} handleBuyClick={handleBuyClick} user={user} />
+                ? <BundleCard key={course.id} course={course} index={index} handleBuyClick={handleBuyClick} />
+                : <CourseCard key={course.id} course={course} index={index} handleBuyClick={handleBuyClick} />
             ))}
           </div>
         </div>
@@ -101,7 +127,9 @@ const CoursesPage = () => {
   );
 };
 
-const CourseCard = ({ course, index, handleBuyClick, user }) => (
+// --- COMPONENTELE CARDURILOR ---
+
+const CourseCard = ({ course, index, handleBuyClick }) => (
   <motion.div
     initial={{ opacity: 0, y: 20 }}
     animate={{ opacity: 1, y: 0 }}
@@ -122,7 +150,7 @@ const CourseCard = ({ course, index, handleBuyClick, user }) => (
           <span className="text-3xl font-bold gold-text">{course.price}€</span>
         </div>
 
-        <Button onClick={handleBuyClick} className="w-full gold-gradient text-black font-semibold hover:opacity-90">
+        <Button onClick={() => handleBuyClick(course)} className="w-full gold-gradient text-black font-semibold hover:opacity-90">
           Satın Al
         </Button>
       </div>
@@ -130,7 +158,7 @@ const CourseCard = ({ course, index, handleBuyClick, user }) => (
   </motion.div>
 );
 
-const BundleCard = ({ course, index, handleBuyClick, user }) => (
+const BundleCard = ({ course, index, handleBuyClick }) => (
   <motion.div
     initial={{ opacity: 0, y: 20 }}
     animate={{ opacity: 1, y: 0 }}
@@ -159,7 +187,7 @@ const BundleCard = ({ course, index, handleBuyClick, user }) => (
           </div>
         </div>
 
-        <Button onClick={handleBuyClick} className="w-full gold-gradient text-black font-bold text-lg py-6 hover:opacity-90">
+        <Button onClick={() => handleBuyClick(course)} className="w-full gold-gradient text-black font-bold text-lg py-6 hover:opacity-90">
           Paketi Satın Al
         </Button>
       </div>

@@ -3,9 +3,13 @@ import { Helmet } from 'react-helmet';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/Button';
-import { Star, Zap, BarChart2 } from 'lucide-react';
+import { Star, Zap, BarChart2, Users, BookOpen, Clock } from 'lucide-react';
 import WelcomeMessage from '@/components/WelcomeMessage';
 import HeroImage from '@/components/HeroImage';
+import Counter from '@/components/ui/Counter';
+import FAQSection from '@/components/FAQSection';
+import TestimonialMarquee from '@/components/TestimonialMarquee';
+import Newsletter from '@/components/Newsletter';
 
 const featuredCourses = [
   {
@@ -52,16 +56,57 @@ const HomePage = () => {
     <>
       <Helmet>
         <title>NovaTrader - Profesyonel Borsa ve Kripto Eğitim Platformu</title>
-        <meta name="description" content="NovaTrader ile borsa ve kripto para piyasalarında uzmanlaşın. Profesyonel eğitim kursları, canlı yayınlar ve ticaret araçları ile yatırım becerilerinizi geliştirin." />
+        <meta name="description" content="NovaTrader ile borsa ve kripto para piyasalarında uzmanlaşın." />
       </Helmet>
       
-      {/* Hero Section */}
       <section className="container mx-auto px-4 py-20 md:py-32 flex flex-col lg:flex-row items-center justify-between">
         <WelcomeMessage />
         <HeroImage />
       </section>
 
-      {/* Features Section */}
+      <section className="py-12 bg-yellow-500/5 border-y border-yellow-500/10">
+        <div className="container mx-auto px-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+            
+            <div className="flex flex-col items-center">
+              <Users className="w-8 h-8 text-yellow-500 mb-2" />
+              <div className="text-3xl md:text-4xl font-bold text-white flex items-center justify-center gap-1">
+                <Counter value={1250} />
+                <span>+</span>
+              </div>
+              <p className="text-gray-400 text-sm mt-1">Mutlu Öğrenci</p>
+            </div>
+
+            <div className="flex flex-col items-center">
+              <BookOpen className="w-8 h-8 text-yellow-500 mb-2" />
+              <div className="text-3xl md:text-4xl font-bold text-white flex items-center justify-center gap-1">
+                <Counter value={45} />
+              </div>
+              <p className="text-gray-400 text-sm mt-1">Eğitim Modülü</p>
+            </div>
+
+            <div className="flex flex-col items-center">
+              <Clock className="w-8 h-8 text-yellow-500 mb-2" />
+              <div className="text-3xl md:text-4xl font-bold text-white flex items-center justify-center gap-1">
+                <Counter value={120} />
+                <span>+</span>
+              </div>
+              <p className="text-gray-400 text-sm mt-1">Saat İçerik</p>
+            </div>
+
+            <div className="flex flex-col items-center">
+              <Star className="w-8 h-8 text-yellow-500 mb-2" />
+              <div className="text-3xl md:text-4xl font-bold text-white flex items-center justify-center gap-1">
+                <Counter value={98} />
+                <span>%</span>
+              </div>
+              <p className="text-gray-400 text-sm mt-1">Memnuniyet</p>
+            </div>
+
+          </div>
+        </div>
+      </section>
+
       <section className="bg-[#141414] py-20">
         <div className="container mx-auto px-4">
           <motion.div
@@ -92,8 +137,7 @@ const HomePage = () => {
           </div>
         </div>
       </section>
-
-      {/* Featured Courses Section */}
+      
       <section className="py-20">
         <div className="container mx-auto px-4">
           <motion.div
@@ -134,6 +178,9 @@ const HomePage = () => {
           </div>
         </div>
       </section>
+      <TestimonialMarquee />
+      <FAQSection />
+      <Newsletter />
     </>
   );
 };
