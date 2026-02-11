@@ -16,37 +16,39 @@ app.post('/api/webhook', express.raw({ type: 'application/json' }), async (req, 
 
   try {
     event = stripe.webhooks.constructEvent(req.body, sig, process.env.STRIPE_WEBHOOK_SECRET);
-    console.log("🚀 Webhook recepționat cu succes:", event.type);
+    console.log("🚀 Webhook recepționat:", event.type);
   } catch (err) {
     console.error('❌ Eroare Semnătură Webhook:', err.message);
     return res.status(400).send(`Webhook Error: ${err.message}`);
   }
 
-  // Căutăm Modelul User
-  const User = require('./models/User');
-
-  if (event.type === 'customer.subscription.deleted' || event.type === 'customer.subscription.updated') {
+  // Toate evenimentele de subscriptie trec prin filtrul ăsta
+  if (event.type.startsWith('customer.subscription.')) {
     const subscription = event.data.object;
-    console.log("🔍 Procesăm abonament pentru customer:", subscription.customer);
-    console.log("📊 Status abonament nou:", subscription.status);
+    const stripeCustomerId = subscription.customer;
+    const status = subscription.status;
 
-    // Dacă statusul e unul care înseamnă "fără acces"
-    if (['canceled', 'unpaid', 'past_due', 'incomplete_expired'].includes(subscription.status)) {
-      try {
-        const result = await User.findOneAndUpdate(
-          { stripeCustomerId: subscription.customer },
-          { subscriptionStatus: 'inactive' },
-          { new: true }
-        );
-        
-        if (result) {
-          console.log(`✅ Utilizator ${result.email} a fost trecut pe INACTIV.`);
-        } else {
-          console.log("⚠️ Nu am găsit niciun user în DB cu acest stripeCustomerId.");
-        }
-      } catch (dbErr) {
-        console.error("❌ Eroare la scrierea în MongoDB:", dbErr);
+    console.log(`🔍 Analizăm subscriptia pentru ${stripeCustomerId}. Status actual: ${status}`);
+
+    // Statusuri care înseamnă că userul NU mai are acces
+    const inactiveStatuses = ['canceled', 'unpaid', 'past_due', 'incomplete_expired'];
+    
+    // Dacă statusul e unul din cele de sus SAU dacă a dat cancel din portal (cancel_at_period_end)
+    const shouldBeInactive = inactiveStatuses.includes(status) || subscription.cancel_at_period_end === true;
+
+    try {
+      const user = await User.findOne({ stripeCustomerId });
+
+      if (user) {
+        // Dacă trebuie dezactivat, îl facem inactive. Altfel, dacă e 'active', ne asigurăm că e 'active' în DB.
+        user.subscriptionStatus = shouldBeInactive ? 'inactive' : 'active';
+        await user.save();
+        console.log(`✅ Status actualizat în DB pentru ${user.email}: ${user.subscriptionStatus}`);
+      } else {
+        console.log(`⚠️ ATENȚIE: Stripe a trimis un eveniment pentru ${stripeCustomerId}, dar acest ID nu există în MongoDB la niciun user!`);
       }
+    } catch (err) {
+      console.error("❌ Eroare la actualizarea DB:", err);
     }
   }
 
