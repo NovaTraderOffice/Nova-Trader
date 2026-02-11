@@ -22,30 +22,39 @@ app.post('/api/webhook', express.raw({ type: 'application/json' }), async (req, 
     return res.status(400).send(`Webhook Error: ${err.message}`);
   }
 
-  // Toate evenimentele de subscriptie trec prin filtrul ăsta
   if (event.type.startsWith('customer.subscription.')) {
     const subscription = event.data.object;
     const stripeCustomerId = subscription.customer;
     const status = subscription.status;
 
-    console.log(`🔍 Analizăm subscriptia pentru ${stripeCustomerId}. Status actual: ${status}`);
+    // Extragem fix ce ai văzut tu în log-uri
+    const isCanceledAtPeriodEnd = subscription.cancel_at_period_end === true;
+    const hasCancelAt = subscription.cancel_at !== null;
 
-    // Statusuri care înseamnă că userul NU mai are acces
+    console.log(`🔍 Analizăm subscriptia pt ${stripeCustomerId}. Status Stripe: ${status} | Cancelat din portal: ${isCanceledAtPeriodEnd || hasCancelAt}`);
+
+    // Statusuri care înseamnă clar că nu mai e abonat
     const inactiveStatuses = ['canceled', 'unpaid', 'past_due', 'incomplete_expired'];
     
-    // Dacă statusul e unul din cele de sus SAU dacă a dat cancel din portal (cancel_at_period_end)
-    const shouldBeInactive = inactiveStatuses.includes(status) || subscription.cancel_at_period_end === true;
+    // Dacă statusul e rău SAU dacă omul a cerut anularea, îl trecem pe INACTIV
+    const shouldBeInactive = inactiveStatuses.includes(status) || isCanceledAtPeriodEnd || hasCancelAt;
 
     try {
       const user = await User.findOne({ stripeCustomerId });
 
       if (user) {
-        // Dacă trebuie dezactivat, îl facem inactive. Altfel, dacă e 'active', ne asigurăm că e 'active' în DB.
         user.subscriptionStatus = shouldBeInactive ? 'inactive' : 'active';
         await user.save();
         console.log(`✅ Status actualizat în DB pentru ${user.email}: ${user.subscriptionStatus}`);
+        
+        // Dacă l-a anulat, aici putem să-i dăm afară de pe grupul de Telegram!
+        if (shouldBeInactive && user.telegramChatId) {
+            console.log(`🚨 Pregătim kick de pe Telegram pentru ${user.email}...`);
+            // bot.banChatMember(process.env.TELEGRAM_GROUP_ID, user.telegramChatId);
+        }
+
       } else {
-        console.log(`⚠️ ATENȚIE: Stripe a trimis un eveniment pentru ${stripeCustomerId}, dar acest ID nu există în MongoDB la niciun user!`);
+        console.log(`⚠️ Eroare logică: Stripe a trimis un eveniment pentru ID-ul ${stripeCustomerId}, dar nu există în DB.`);
       }
     } catch (err) {
       console.error("❌ Eroare la actualizarea DB:", err);
