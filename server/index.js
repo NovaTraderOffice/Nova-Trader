@@ -328,7 +328,6 @@ app.post('/api/verify-payment', async (req, res) => {
     res.status(500).json({ success: false, error: error.message });
   }
 });
-// ---------------------------------------------
 
 app.get('/api/my-courses/:userId', async (req, res) => {
   try {
@@ -451,11 +450,23 @@ app.post('/api/subscriptions/create-checkout-session', async (req, res) => {
 app.post('/api/subscriptions/create-portal-session', async (req, res) => {
   try {
     const { userId } = req.body;
+    console.log("Portal Session solicitat pentru UserID:", userId); // Debug 1
+
+    if (!userId) {
+        return res.status(400).json({ error: "Frontend-ul nu a trimis userId!" });
+    }
     
     const user = await User.findById(userId);
 
-    if (!user || !user.stripeCustomerId) {
-      return res.status(400).json({ error: "Nu ai niciun abonament activ momentan." });
+    if (!user) {
+        console.log("❌ User negăsit în DB");
+        return res.status(400).json({ error: "Userul nu există în baza de date." });
+    }
+
+    console.log(`🔍 User găsit: ${user.email} | StripeCustomer: ${user.stripeCustomerId}`); // Debug 2
+
+    if (!user.stripeCustomerId) {
+      return res.status(400).json({ error: "Userul are status activ, dar lipsește stripeCustomerId din DB." });
     }
 
     const portalSession = await stripe.billingPortal.sessions.create({
@@ -467,7 +478,7 @@ app.post('/api/subscriptions/create-portal-session', async (req, res) => {
 
   } catch (error) {
     console.error("Eroare la crearea Portalului Stripe:", error);
-    res.status(500).json({ error: "Eroare la accesarea portalului." });
+    res.status(500).json({ error: "Eroare la accesarea portalului: " + error.message });
   }
 });
 
