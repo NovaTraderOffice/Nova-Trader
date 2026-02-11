@@ -17,6 +17,11 @@ const UserSchema = new mongoose.Schema({
     default: 'inactive'
   },
   
+  subscriptionEndDate: {
+  type: Date,
+  default: null
+},
+
   // Verificare & Telegram
   isVerified: { type: Boolean, default: false },
   verificationCode: { type: String },

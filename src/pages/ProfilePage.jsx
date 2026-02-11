@@ -14,7 +14,7 @@ const ProfilePage = () => {
 
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [loadingPortal, setLoadingPortal] = useState(false); // Pentru butonul de abonament
+  const [loadingPortal, setLoadingPortal] = useState(false);
 
   const [fullName, setFullName] = useState(user?.fullName || '');
 
@@ -51,20 +51,19 @@ const ProfilePage = () => {
     }
   };
 
-  // Funcția pentru gestionarea abonamentului Stripe
   const handleManageSubscription = async () => {
     setLoadingPortal(true);
     try {
       const response = await fetch(`${API_URL}/subscriptions/create-portal-session`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: user.id }) // sau user._id, depinde cum e în contextul tău
+        body: JSON.stringify({ userId: user.id })
       });
 
       const data = await response.json();
 
       if (data.url) {
-        window.location.href = data.url; // Redirecționare spre Stripe Portal
+        window.location.href = data.url; 
       } else {
         toast({ variant: "destructive", title: "Hata", description: data.error || "Nu s-a putut deschide portalul." });
       }
@@ -172,6 +171,7 @@ const ProfilePage = () => {
             <div className="bg-black/30 p-6 rounded-lg border border-gray-800/50 flex flex-col md:flex-row justify-between items-center gap-6">
               
               <div className="w-full md:w-auto text-center md:text-left">
+                {/* 1. STATUS ACTIV (Pulsing Verde) */}
                 {user?.subscriptionStatus === 'active' ? (
                   <>
                     <div className="flex items-center justify-center md:justify-start space-x-2 mb-2">
@@ -180,7 +180,23 @@ const ProfilePage = () => {
                     </div>
                     <p className="text-gray-400 text-sm">VIP Telegram grubuna tam erişiminiz var.</p>
                   </>
-                ) : (
+                ) 
+                
+                /* 2. STATUS PENDING CANCEL (A dat cancel dar încă are acces - Pulsing Galben) */
+                : user?.subscriptionStatus === 'pending_cancel' ? (
+                  <>
+                    <div className="flex items-center justify-center md:justify-start space-x-2 mb-2">
+                      <span className="w-2 h-2 rounded-full bg-yellow-500 animate-pulse"></span>
+                      <span className="text-yellow-500 font-bold uppercase tracking-widest text-sm">
+                        Pasif (Erişim Bitiş: {user?.subscriptionEndDate ? new Date(user.subscriptionEndDate).toLocaleDateString('tr-TR') : 'Belirsiz'})
+                      </span>
+                    </div>
+                    <p className="text-gray-400 text-sm">Süreniz dolana kadar VIP erişiminiz devam edecektir.</p>
+                  </>
+                ) 
+                
+                /* 3. STATUS INACTIV SAU ORICE ALTCEVA (Gri) */
+                : (
                   <>
                      <span className="text-gray-500 font-bold uppercase tracking-widest text-sm mb-2 block">Pasif</span>
                      <p className="text-gray-400 text-sm">Şu anda aktif bir aboneliğiniz bulunmuyor.</p>

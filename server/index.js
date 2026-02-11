@@ -27,28 +27,39 @@ app.post('/api/webhook', express.raw({ type: 'application/json' }), async (req, 
     const stripeCustomerId = subscription.customer;
     const status = subscription.status;
 
-    // Extragem fix ce ai văzut tu în log-uri
+    // Extragem datele de anulare
     const isCanceledAtPeriodEnd = subscription.cancel_at_period_end === true;
     const hasCancelAt = subscription.cancel_at !== null;
 
     console.log(`🔍 Analizăm subscriptia pt ${stripeCustomerId}. Status Stripe: ${status} | Cancelat din portal: ${isCanceledAtPeriodEnd || hasCancelAt}`);
 
-    // Statusuri care înseamnă clar că nu mai e abonat
+    // Statusuri care înseamnă clar că a expirat / nu e plătit
     const inactiveStatuses = ['canceled', 'unpaid', 'past_due', 'incomplete_expired'];
     
-    // Dacă statusul e rău SAU dacă omul a cerut anularea, îl trecem pe INACTIV
-    const shouldBeInactive = inactiveStatuses.includes(status) || isCanceledAtPeriodEnd || hasCancelAt;
+    let newStatus = 'active';
+    let endDate = null;
+
+    // Stabilim noul status intern și data expirării (dacă există)
+    if (inactiveStatuses.includes(status)) {
+      newStatus = 'inactive';
+    } else if (isCanceledAtPeriodEnd || hasCancelAt) {
+      newStatus = 'pending_cancel';
+      // Convertim secundele de la Stripe în milisecunde pentru Date()
+      endDate = new Date(subscription.cancel_at * 1000); 
+    }
 
     try {
       const user = await User.findOne({ stripeCustomerId });
 
       if (user) {
-        user.subscriptionStatus = shouldBeInactive ? 'inactive' : 'active';
+        user.subscriptionStatus = newStatus;
+        user.subscriptionEndDate = endDate; // Salvăm data în DB
         await user.save();
+        
         console.log(`✅ Status actualizat în DB pentru ${user.email}: ${user.subscriptionStatus}`);
         
-        // Dacă l-a anulat, aici putem să-i dăm afară de pe grupul de Telegram!
-        if (shouldBeInactive && user.telegramChatId) {
+        // Dăm afară de pe grup DOAR dacă a expirat de tot ('inactive')
+        if (newStatus === 'inactive' && user.telegramChatId) {
             console.log(`🚨 Pregătim kick de pe Telegram pentru ${user.email}...`);
             // bot.banChatMember(process.env.TELEGRAM_GROUP_ID, user.telegramChatId);
         }
@@ -77,13 +88,11 @@ if (process.env.TELEGRAM_BOT_TOKEN && process.env.ENABLE_BOT === 'true') {
   const bot = new TelegramBot(process.env.TELEGRAM_BOT_TOKEN, { polling: true });
   console.log('🤖 Botul Telegram a pornit...');
 
-
   bot.on('message', async (msg) => {
     const chatId = msg.chat.id;
     
     if (msg.contact) {
       console.log(`📞 Primit contact de la ${msg.from.first_name}: ${msg.contact.phone_number}`);
-lick
       if (msg.contact.user_id !== msg.from.id) {
         bot.sendMessage(chatId, "❌ Lütfen kendi numaranızı gönderin."); 
         return;
@@ -116,7 +125,7 @@ lick
           bot.sendMessage(chatId, `🎉 Tebrikler, ${user.fullName}! Hesabınız doğrulandı.`, opts);
         } else {
           console.log(`❌ Nu am găsit user cu chatId ${chatId}`);
-          bot.sendMessage(chatId, "❌ Hata: Önce kodu göndermelisiniz.");ul
+          bot.sendMessage(chatId, "❌ Hata: Önce kodu göndermelisiniz.");
         }
       } catch (error) {
         console.error("Eroare la procesare contact:", error);
@@ -145,7 +154,7 @@ lick
              user.telegramChatId = chatId.toString();
              await user.save();
              console.log(`🔗 ChatID ${chatId} legat de userul ${user.email}`);
-l
+
              const opts = {
                reply_markup: {
                  keyboard: [
