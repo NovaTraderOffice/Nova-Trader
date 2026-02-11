@@ -8,7 +8,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
   DropdownMenuGroup,
-} from '@/components/ui/dropdown-menu';
+} from '@/components/ui/Dropdown-menu';
 import { Avatar, AvatarFallback } from '@/components/ui/Avatar';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/Button';
