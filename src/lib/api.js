@@ -1,4 +1,4 @@
-const API_BASE_URL = 'https://nova-trader-backend.onrender.com';
+const API_BASE_URL = 'https://nova-trader-backend.onrender.com/api';
 
 export const API_URL = API_BASE_URL;
 
