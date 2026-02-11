@@ -15,29 +15,38 @@ app.post('/api/webhook', express.raw({ type: 'application/json' }), async (req, 
   let event;
 
   try {
-    // Verificăm semnătura originală de la Stripe
     event = stripe.webhooks.constructEvent(req.body, sig, process.env.STRIPE_WEBHOOK_SECRET);
-    console.log("✅ Webhook valid primit:", event.type);
+    console.log("🚀 Webhook recepționat cu succes:", event.type);
   } catch (err) {
-    console.error('⚠️ Eroare la semnatura Webhook:', err.message);
+    console.error('❌ Eroare Semnătură Webhook:', err.message);
     return res.status(400).send(`Webhook Error: ${err.message}`);
   }
 
-  // Procesăm evenimentul
-  if (event.type === 'customer.subscription.deleted') {
-    const subscription = event.data.object;
-    const stripeCustomerId = subscription.customer;
+  // Căutăm Modelul User
+  const User = require('./models/User');
 
-    try {
-      const user = await User.findOne({ stripeCustomerId });
-      
-      if (user) {
-        user.subscriptionStatus = 'inactive';
-        await user.save();
-        console.log(`❌ Abonament dezactivat pentru: ${user.email}`);
+  if (event.type === 'customer.subscription.deleted' || event.type === 'customer.subscription.updated') {
+    const subscription = event.data.object;
+    console.log("🔍 Procesăm abonament pentru customer:", subscription.customer);
+    console.log("📊 Status abonament nou:", subscription.status);
+
+    // Dacă statusul e unul care înseamnă "fără acces"
+    if (['canceled', 'unpaid', 'past_due', 'incomplete_expired'].includes(subscription.status)) {
+      try {
+        const result = await User.findOneAndUpdate(
+          { stripeCustomerId: subscription.customer },
+          { subscriptionStatus: 'inactive' },
+          { new: true }
+        );
+        
+        if (result) {
+          console.log(`✅ Utilizator ${result.email} a fost trecut pe INACTIV.`);
+        } else {
+          console.log("⚠️ Nu am găsit niciun user în DB cu acest stripeCustomerId.");
+        }
+      } catch (dbErr) {
+        console.error("❌ Eroare la scrierea în MongoDB:", dbErr);
       }
-    } catch (err) {
-      console.error("❌ Eroare DB Webhook:", err);
     }
   }
 
@@ -367,7 +376,9 @@ app.post('/api/subscriptions/create-portal-session', async (req, res) => {
   }
 });
 
-
-
 const PORT = process.env.PORT || 5000;
+const path = require('path');
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, '../index.html')); 
+});
 app.listen(PORT, () => console.log(`🚀 Server pe portul ${PORT}`));
