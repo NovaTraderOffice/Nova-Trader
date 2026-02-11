@@ -60,15 +60,29 @@ app.post('/api/webhook', express.raw({ type: 'application/json' }), async (req, 
         
         // Dăm afară de pe grup DOAR dacă a expirat de tot ('inactive')
         if (newStatus === 'inactive' && user.telegramChatId) {
-            console.log(`🚨 Pregătim kick de pe Telegram pentru ${user.email}...`);
-            // bot.banChatMember(process.env.TELEGRAM_GROUP_ID, user.telegramChatId);
+            console.log(`🚨 Abonament expirat pentru ${user.email}. Îl scoatem din grup...`);
+            
+            if (process.env.TELEGRAM_BOT_TOKEN && process.env.TELEGRAM_GROUP_ID) {
+                try {
+                    const bot = new TelegramBot(process.env.TELEGRAM_BOT_TOKEN);
+                  
+                    await bot.banChatMember(process.env.TELEGRAM_GROUP_ID, user.telegramChatId);
+                    
+                    await bot.unbanChatMember(process.env.TELEGRAM_GROUP_ID, user.telegramChatId);
+                    
+                    await bot.sendMessage(user.telegramChatId, "VIP aboneliğinizin süresi doldu. Din grubunu kaldırdık. Sizi her zaman tekrar aramızda görmeyi dört gözle bekliyoruz!");
+                    
+                    console.log(`KICKED: ${user.email} a fost eliminat din Telegram.`);
+                } catch (kickErr) {
+                    console.error("Nu am putut da kick :", kickErr.message);
+                }
+            }
         }
-
       } else {
-        console.log(`⚠️ Eroare logică: Stripe a trimis un eveniment pentru ID-ul ${stripeCustomerId}, dar nu există în DB.`);
+        console.log(`Eroare logică: Stripe a trimis un eveniment pentru ID-ul ${stripeCustomerId}, dar nu există în DB.`);
       }
     } catch (err) {
-      console.error("❌ Eroare la actualizarea DB:", err);
+      console.error("Eroare la actualizarea DB:", err);
     }
   }
 
@@ -79,33 +93,27 @@ app.use(express.json());
 app.use(cors());
 
 mongoose.connect(process.env.MONGO_URI)
-  .then(() => console.log('✅ Conectat la MongoDB Atlas'))
-  .catch((err) => console.error('❌ Eroare Mongo:', err));
+  .then(() => console.log('Conectat la MongoDB Atlas'))
+  .catch((err) => console.error('Eroare Mongo:', err));
 
 app.use('/api', authRoutes);
 
 if (process.env.TELEGRAM_BOT_TOKEN && process.env.ENABLE_BOT === 'true') {
   const bot = new TelegramBot(process.env.TELEGRAM_BOT_TOKEN, { polling: true });
-  console.log('🤖 Botul Telegram a pornit...');
+  console.log('Botul Telegram a pornit');
 
   bot.on('message', async (msg) => {
     const chatId = msg.chat.id;
-    const type = msg.chat.type; // 'private', 'group', sau 'supergroup'
-    
-    // 1. AFLAREA ID-ului DE GRUP
-    // Dacă mesajul e de pe un grup, doar afișăm ID-ul în consolă și ne oprim.
+    const type = msg.chat.type;
     if (type === 'group' || type === 'supergroup') {
-        console.log(`📢 MESAJE GRUP (ID): ${chatId} | Trimis de: ${msg.from.first_name}`);
-        return; // <--- ASTA OPREȘTE BOTUL SĂ RĂSPUNDĂ PE GRUP
+        return;
     }
 
-    // De aici în jos, codul rulează DOAR în privat (Private Chat)
-    
     // 2. LOGICA DE VERIFICARE NUMĂR TELEFON
     if (msg.contact) {
-      console.log(`📞 Primit contact de la ${msg.from.first_name}: ${msg.contact.phone_number}`);
+      console.log(`Primit contact de la ${msg.from.first_name}: ${msg.contact.phone_number}`);
       if (msg.contact.user_id !== msg.from.id) {
-        bot.sendMessage(chatId, "❌ Lütfen kendi numaranızı gönderin."); 
+        bot.sendMessage(chatId, "Lütfen kendi numaranızı gönderin."); 
         return;
       }
 
@@ -113,7 +121,7 @@ if (process.env.TELEGRAM_BOT_TOKEN && process.env.ENABLE_BOT === 'true') {
         const user = await User.findOne({ telegramChatId: chatId.toString() });
 
         if (user) {
-          console.log(`✅ User găsit pentru contact: ${user.email}`);
+          console.log(`User găsit pentru contact: ${user.email}`);
           
           let realPhoneNumber = msg.contact.phone_number;
           if (!realPhoneNumber.startsWith('+')) {
@@ -125,7 +133,7 @@ if (process.env.TELEGRAM_BOT_TOKEN && process.env.ENABLE_BOT === 'true') {
           user.verificationCode = undefined;
           
           await user.save();
-          console.log(`💾 User salvat și verificat!`);
+          console.log(`User salvat și verificat!`);
 
           const opts = {
             reply_markup: {
@@ -135,8 +143,8 @@ if (process.env.TELEGRAM_BOT_TOKEN && process.env.ENABLE_BOT === 'true') {
 
           bot.sendMessage(chatId, `🎉 Tebrikler, ${user.fullName}! Hesabınız doğrulandı.`, opts);
         } else {
-          console.log(`❌ Nu am găsit user cu chatId ${chatId} (poate nu a trimis codul înainte)`);
-          bot.sendMessage(chatId, "❌ Hata: Önce kodu göndermelisiniz.");
+          console.log(`Nu am găsit user cu chatId ${chatId} (poate nu a trimis codul înainte)`);
+          bot.sendMessage(chatId, "Hata: Önce kodu göndermelisiniz.");
         }
       } catch (error) {
         console.error("Eroare la procesare contact:", error);
@@ -147,7 +155,7 @@ if (process.env.TELEGRAM_BOT_TOKEN && process.env.ENABLE_BOT === 'true') {
     // 3. LOGICA DE VERIFICARE COD (TEXT)
     if (msg.text) {
       const text = msg.text.trim();
-      console.log(`📩 Primit text în privat: ${text}`);
+      console.log(`Primit text în privat: ${text}`);
 
       if (text === '/start') {
         bot.sendMessage(chatId, "Merhaba! Lütfen siteden aldığınız doğrulama kodunu gönderin.");
@@ -159,10 +167,10 @@ if (process.env.TELEGRAM_BOT_TOKEN && process.env.ENABLE_BOT === 'true') {
         const user = await User.findOne({ verificationCode: text });
 
         if (user) {
-          console.log(`🔍 Cod valid găsit pentru: ${user.email}`);
+          console.log(`Cod valid găsit pentru: ${user.email}`);
 
           if (user.isVerified) {
-             bot.sendMessage(chatId, "✅ Hesabınız zaten doğrulandı!");
+             bot.sendMessage(chatId, "Hesabınız zaten doğrulandı!");
           } else {
              // Salvăm ChatID-ul temporar ca să știm cui îi cerem telefonul
              user.telegramChatId = chatId.toString();
@@ -173,7 +181,7 @@ if (process.env.TELEGRAM_BOT_TOKEN && process.env.ENABLE_BOT === 'true') {
                reply_markup: {
                  keyboard: [
                    [{
-                     text: "📱 Telefon Numarasını Doğrula",
+                     text: "Telefon Numarasını Doğrula",
                      request_contact: true
                    }]
                  ],
@@ -185,8 +193,8 @@ if (process.env.TELEGRAM_BOT_TOKEN && process.env.ENABLE_BOT === 'true') {
              bot.sendMessage(chatId, "Kod doğru! ✅\nLütfen aşağıdaki butona tıklayarak telefon numaranızı doğrulayın.", opts);
           }
         } else {
-          console.log(`❌ Cod invalid: ${text}`);
-          bot.sendMessage(chatId, "❌ Geçersiz kod.");
+          console.log(`Cod invalid: ${text}`);
+          bot.sendMessage(chatId, "Geçersiz kod.");
         }
       } catch (error) {
         console.error("Eroare la procesare text:", error);
@@ -236,21 +244,39 @@ app.post('/api/create-checkout-session', async (req, res) => {
 app.post('/api/verify-payment', async (req, res) => {
   try {
     const { sessionId, courseId, userId } = req.body;
-
     const session = await stripe.checkout.sessions.retrieve(sessionId);
 
     if (session.payment_status === 'paid') {
-      const User = require('./models/User');
-      
+      const User = require('./models/User'); 
       const actualUserId = userId || session.client_reference_id;
       const user = await User.findById(actualUserId);
 
       if (user) {
         if (session.mode === 'subscription') {
           user.subscriptionStatus = 'active';
-          user.stripeCustomerId = session.customer; 
+          user.stripeCustomerId = session.customer;
           await user.save();
-          return res.json({ success: true, message: "Abonament activat cu succes!" });
+
+          if (process.env.TELEGRAM_BOT_TOKEN && process.env.TELEGRAM_GROUP_ID && user.telegramChatId) {
+            try {
+              const bot = new TelegramBot(process.env.TELEGRAM_BOT_TOKEN); 
+              const inviteLink = await bot.createChatInviteLink(process.env.TELEGRAM_GROUP_ID, {
+                member_limit: 1, // Doar pentru el
+                name: `VIP: ${user.fullName || user.email}`
+              });
+
+              // 2. Îi trimitem linkul în privat
+              await bot.sendMessage(user.telegramChatId, 
+                `🎉 Ödeme onaylandı! VIP'ye hoş geldiniz.\n\n👇 İşte size özel erişim bağlantınız:\n${inviteLink.invite_link}\n\n⚠️ Uyarı: Bağlantıyı başkasıyla paylaşmayın, yalnızca bir kez çalışır!`
+              );
+              console.log(`Link VIP trimis la ${user.email}`);
+            } catch (tgError) {
+              console.error("Eroare la trimiterea link-ului Telegram:", tgError.message);
+              // Nu oprim funcția, doar logăm eroarea
+            }
+          }
+
+          return res.json({ success: true, message: "Abonelik etkinleştirildi! Telegram'ı kontrol edin." });
         } 
         
         else {
@@ -258,12 +284,12 @@ app.post('/api/verify-payment', async (req, res) => {
             user.purchasedCourses.push(courseId);
             await user.save();
           }
-          return res.json({ success: true, message: "Curs activat cu succes!" });
+          return res.json({ success: true, message: "Kurs başarıyla etkinleştirildi!" });
         }
       }
     }
 
-    res.status(400).json({ success: false, message: "Plata nu a fost confirmată." });
+    res.status(400).json({ success: false, message: "Ödeme onaylanmadı." });
   } catch (error) {
     console.error("Eroare la verificarea plății:", error);
     res.status(500).json({ success: false, error: 'Eroare server' });
