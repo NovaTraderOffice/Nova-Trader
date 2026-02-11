@@ -8,6 +8,7 @@ const SuccessPage = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { user, updateUser } = useAuth();
+  
   const [status, setStatus] = useState('loading');
   const hasVerified = useRef(false);
 

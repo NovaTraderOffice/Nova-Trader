@@ -243,60 +243,58 @@ app.post('/api/create-checkout-session', async (req, res) => {
 
 app.post('/api/verify-payment', async (req, res) => {
   try {
-    const { sessionId, userId } = req.body;
+    const { sessionId, userId, courseId } = req.body;
+    console.log("🔍 Verificare plată pentru sesiunea:", sessionId);
+
+    if (!sessionId) {
+      return res.status(400).json({ success: false, error: "Lipseste Session ID" });
+    }
+
     const session = await stripe.checkout.sessions.retrieve(sessionId);
 
     if (session.payment_status === 'paid') {
+      // Căutăm userul
+      const User = require('./models/User'); // Asigură-te că drumul e corect
       const user = await User.findById(userId || session.client_reference_id);
 
-      if (user) {
-        if (session.mode === 'subscription') {
-          // Luăm detaliile abonamentului ca să știm când expiră luna asta
-          const subscription = await stripe.subscriptions.retrieve(session.subscription);
-          
-          user.subscriptionStatus = 'active';
-          user.stripeCustomerId = session.customer;
-          // Salvăm data de final a perioadei curente (în milisecunde)
-          user.subscriptionEndDate = new Date(subscription.current_period_end * 1000); 
-          
-          await user.save();
+      if (!user) {
+        console.error("❌ Userul nu a fost găsit în DB");
+        return res.status(404).json({ success: false, error: "Utilizator negăsit" });
+      }
 
-          if (process.env.TELEGRAM_BOT_TOKEN && process.env.TELEGRAM_GROUP_ID && user.telegramChatId) {
-            try {
-              const bot = new TelegramBot(process.env.TELEGRAM_BOT_TOKEN); 
-              const inviteLink = await bot.createChatInviteLink(process.env.TELEGRAM_GROUP_ID, {
-                member_limit: 1, // Doar pentru el
-                name: `VIP: ${user.fullName || user.email}`
-              });
-
-              // 2. Îi trimitem linkul în privat
-              await bot.sendMessage(user.telegramChatId, 
-                `🎉 Ödeme onaylandı! VIP'ye hoş geldiniz.\n\n👇 İşte size özel erişim bağlantınız:\n${inviteLink.invite_link}\n\n⚠️ Uyarı: Bağlantıyı başkasıyla paylaşmayın, yalnızca bir kez çalışır!`
-              );
-              console.log(`Link VIP trimis la ${user.email}`);
-            } catch (tgError) {
-              console.error("Eroare la trimiterea link-ului Telegram:", tgError.message);
-              // Nu oprim funcția, doar logăm eroarea
-            }
-          }
-
-          return res.json({ success: true, message: "Abonelik etkinleştirildi! Telegram'ı kontrol edin." });
-        } 
+      // LOGICA ABONAMENT
+      if (session.mode === 'subscription' && session.subscription) {
+        const subscription = await stripe.subscriptions.retrieve(session.subscription);
+        user.subscriptionStatus = 'active';
+        user.stripeCustomerId = session.customer;
+        user.subscriptionEndDate = new Date(subscription.current_period_end * 1000);
         
-        else {
-          if (courseId && !user.purchasedCourses.includes(courseId)) {
-            user.purchasedCourses.push(courseId);
-            await user.save();
+        // Trimitem link Telegram dacă avem datele
+        if (process.env.TELEGRAM_BOT_TOKEN && process.env.TELEGRAM_GROUP_ID && user.telegramChatId) {
+          try {
+            const bot = new TelegramBot(process.env.TELEGRAM_BOT_TOKEN);
+            const inviteLink = await bot.createChatInviteLink(process.env.TELEGRAM_GROUP_ID, { member_limit: 1 });
+            await bot.sendMessage(user.telegramChatId, `🎉 VIP link: ${inviteLink.invite_link}`);
+          } catch (tgErr) {
+            console.error("⚠️ Eroare trimitere link TG:", tgErr.message);
           }
-          return res.json({ success: true, message: "Kurs başarıyla etkinleştirildi!" });
+        }
+      } 
+      // LOGICA CURS
+      else if (courseId) {
+        if (!user.purchasedCourses.includes(courseId)) {
+          user.purchasedCourses.push(courseId);
         }
       }
+
+      await user.save();
+      return res.json({ success: true, updatedUser: user });
     }
 
-    res.status(400).json({ success: false, message: "Ödeme onaylanmadı." });
+    res.status(400).json({ success: false, message: "Plata neconfirmată" });
   } catch (error) {
-    console.error("Eroare la verificarea plății:", error);
-    res.status(500).json({ success: false, error: 'Eroare server' });
+    console.error("❌ EROARE SERVER DETALIATĂ:", error.message); // Uită-te în log-urile Railway după asta!
+    res.status(500).json({ success: false, error: error.message });
   }
 });
 
