@@ -18,11 +18,15 @@ const SubscriptionsPage = () => {
     }
 
     setLoading(true);
+
+    // FIX: Definim ID-ul sigur (MongoDB folosește _id, frontend-ul uneori id)
+    const actualUserId = user._id || user.id;
+
     try {
       const response = await fetch(`${API_URL}/subscriptions/create-checkout-session`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: user.id })
+        body: JSON.stringify({ userId: actualUserId }) // <--- Aici folosim variabila sigură
       });
 
       const data = await response.json();
@@ -32,11 +36,11 @@ const SubscriptionsPage = () => {
         window.location.href = data.url;
       } else {
         console.error("Eroare de la server:", data.error);
-        alert("A apărut o problemă la procesarea plății. Te rugăm să încerci din nou.");
+        alert("Ödeme işlemi sırasında bir sorun oluştu. Lütfen tekrar deneyin.");
       }
     } catch (error) {
       console.error("Eroare rețea:", error);
-      alert("Nu s-a putut conecta la server.");
+      alert("Sunucuya bağlanılamadı.");
     } finally {
       setLoading(false);
     }
