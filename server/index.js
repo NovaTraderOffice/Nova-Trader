@@ -201,14 +201,16 @@ app.post('/api/create-checkout-session', async (req, res) => {
         },
       ],
       mode: 'payment',
-      success_url: `${process.env.CLIENT_URL}/basarili?session_id={CHECKOUT_SESSION_ID}&course_id=${courseId}`,
-      cancel_url: `${process.env.CLIENT_URL}/kurslar`,
+      
+      success_url: `https://novatrader.org/basarili?session_id={CHECKOUT_SESSION_ID}&course_id=${courseId}`,
+      cancel_url: `https://novatrader.org/profil`,
       
       metadata: {
         userId: userId,
         courseId: courseId
       }
     });
+    
     res.json({ url: session.url });
 
   } catch (error) {
@@ -358,8 +360,8 @@ app.post('/api/subscriptions/create-checkout-session', async (req, res) => {
           quantity: 1,
         },
       ],
-      success_url: `${process.env.CLIENT_URL}/basarili?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${process.env.CLIENT_URL}/abonelikler`,
+success_url: `https://novatrader.org/basarili?session_id={CHECKOUT_SESSION_ID}`,
+cancel_url: `https://novatrader.org/abonelikler`,
       
       client_reference_id: userId, 
     });
@@ -384,7 +386,7 @@ app.post('/api/subscriptions/create-portal-session', async (req, res) => {
 
     const portalSession = await stripe.billingPortal.sessions.create({
       customer: user.stripeCustomerId,
-      return_url: `${process.env.CLIENT_URL}/profil`,
+      return_url: `https://novatrader.org/profil`,
     });
 
     res.json({ url: portalSession.url });
