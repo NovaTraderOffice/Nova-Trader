@@ -45,7 +45,7 @@ app.post('/api/webhook', express.raw({ type: 'application/json' }), async (req, 
     } else if (isCanceledAtPeriodEnd || hasCancelAt) {
       newStatus = 'pending_cancel';
       // Convertim secundele de la Stripe în milisecunde pentru Date()
-      endDate = new Date(subscription.cancel_at * 1000); 
+      endDate = new Date((subscription.cancel_at || subscription.current_period_end) * 1000); 
     }
 
     try {
