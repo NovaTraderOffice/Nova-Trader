@@ -243,18 +243,22 @@ app.post('/api/create-checkout-session', async (req, res) => {
 
 app.post('/api/verify-payment', async (req, res) => {
   try {
-    const { sessionId, courseId, userId } = req.body;
+    const { sessionId, userId } = req.body;
     const session = await stripe.checkout.sessions.retrieve(sessionId);
 
     if (session.payment_status === 'paid') {
-      const User = require('./models/User'); 
-      const actualUserId = userId || session.client_reference_id;
-      const user = await User.findById(actualUserId);
+      const user = await User.findById(userId || session.client_reference_id);
 
       if (user) {
         if (session.mode === 'subscription') {
+          // Luăm detaliile abonamentului ca să știm când expiră luna asta
+          const subscription = await stripe.subscriptions.retrieve(session.subscription);
+          
           user.subscriptionStatus = 'active';
           user.stripeCustomerId = session.customer;
+          // Salvăm data de final a perioadei curente (în milisecunde)
+          user.subscriptionEndDate = new Date(subscription.current_period_end * 1000); 
+          
           await user.save();
 
           if (process.env.TELEGRAM_BOT_TOKEN && process.env.TELEGRAM_GROUP_ID && user.telegramChatId) {

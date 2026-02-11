@@ -7,10 +7,8 @@ import { useAuth } from '@/contexts/AuthContext';
 const SuccessPage = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const { user, updateUser } = useAuth(); // Ca să actualizăm profilul direct
-  const [status, setStatus] = useState('loading'); // loading, success, error
-  
-  // Ref pentru a preveni apelarea dublă în React Strict Mode
+  const { user, updateUser } = useAuth();
+  const [status, setStatus] = useState('loading');
   const hasVerified = useRef(false);
 
   useEffect(() => {
@@ -19,7 +17,7 @@ const SuccessPage = () => {
       hasVerified.current = true;
 
       const sessionId = searchParams.get('session_id');
-      const courseId = searchParams.get('course_id'); // la abonament va fi null
+      const courseId = searchParams.get('course_id');
 
       if (!sessionId) {
         setStatus('error');
@@ -39,16 +37,19 @@ const SuccessPage = () => {
 
         const data = await response.json();
 
-        if (data.success) {
+        if (data.success && data.updatedUser) {
+          // ACTUALIZARE INSTANT: Salvăm noile date în contextul global
+          updateUser(data.updatedUser);
+          
           setStatus('success');
           
-          // Dacă e curs, merge la Urunlerim. Dacă e abonament, la Profil
+          // Redirecționare elegantă după 3 secunde
           setTimeout(() => {
             if (courseId) {
               navigate('/urunlerim');
             } else {
-              // Dacă a luat abonament, dăm un refresh mic ca să-i apară activ în profil
-              window.location.href = '/profil'; 
+              // Nu mai dăm refresh la pagină, mergem direct prin router
+              navigate('/profil');
             }
           }, 3000);
           
@@ -61,11 +62,10 @@ const SuccessPage = () => {
       }
     };
 
-    // Apelăm verificarea doar dacă userul s-a încărcat
     if (user) {
       verifyPayment();
     }
-  }, [searchParams, navigate, user]);
+  }, [searchParams, navigate, user, updateUser]);
 
   return (
     <div className="min-h-screen bg-[#050505] flex items-center justify-center text-white p-4">
@@ -83,7 +83,7 @@ const SuccessPage = () => {
           <div className="flex flex-col items-center animate-in fade-in zoom-in duration-500">
             <CheckCircle className="w-20 h-20 text-green-500 mb-6" />
             <h2 className="text-3xl font-bold text-white mb-2">Ödeme Başarılı!</h2>
-            <p className="text-gray-400 mb-6">İşleminiz tamamlandı. Yönlendiriliyorsunuz...</p>
+            <p className="text-gray-400 mb-6">Profiliniz güncellendi. Yönlendiriliyorsunuz...</p>
             <div className="w-full bg-gray-800 h-1.5 rounded-full overflow-hidden">
               <div className="bg-green-500 h-full w-full animate-[shrink_3s_linear_forwards]" />
             </div>
