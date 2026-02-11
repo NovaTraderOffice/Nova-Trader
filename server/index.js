@@ -241,6 +241,7 @@ app.post('/api/create-checkout-session', async (req, res) => {
   }
 });
 
+// --- RUTA MODIFICATĂ CU PROTECȚIE LA DATE ---
 app.post('/api/verify-payment', async (req, res) => {
   try {
     const { sessionId, userId, courseId } = req.body;
@@ -254,7 +255,7 @@ app.post('/api/verify-payment', async (req, res) => {
 
     if (session.payment_status === 'paid') {
       // Căutăm userul
-      const User = require('./models/User'); // Asigură-te că drumul e corect
+      const User = require('./models/User'); 
       const user = await User.findById(userId || session.client_reference_id);
 
       if (!user) {
@@ -262,22 +263,51 @@ app.post('/api/verify-payment', async (req, res) => {
         return res.status(404).json({ success: false, error: "Utilizator negăsit" });
       }
 
-      // LOGICA ABONAMENT
-      if (session.mode === 'subscription' && session.subscription) {
-        const subscription = await stripe.subscriptions.retrieve(session.subscription);
-        user.subscriptionStatus = 'active';
-        user.stripeCustomerId = session.customer;
-        user.subscriptionEndDate = new Date(subscription.current_period_end * 1000);
-        
-        // Trimitem link Telegram dacă avem datele
-        if (process.env.TELEGRAM_BOT_TOKEN && process.env.TELEGRAM_GROUP_ID && user.telegramChatId) {
-          try {
-            const bot = new TelegramBot(process.env.TELEGRAM_BOT_TOKEN);
-            const inviteLink = await bot.createChatInviteLink(process.env.TELEGRAM_GROUP_ID, { member_limit: 1 });
-            await bot.sendMessage(user.telegramChatId, `🎉 VIP link: ${inviteLink.invite_link}`);
-          } catch (tgErr) {
-            console.error("⚠️ Eroare trimitere link TG:", tgErr.message);
-          }
+      // LOGICA ABONAMENT (cu protecție la dată)
+      if (session.mode === 'subscription') {
+        if (session.subscription) {
+            try {
+                const subscription = await stripe.subscriptions.retrieve(session.subscription);
+                user.subscriptionStatus = 'active';
+                user.stripeCustomerId = session.customer;
+
+                // Calculăm data cu protecție (Fallback)
+                let expiryDate;
+                if (subscription && subscription.current_period_end) {
+                    expiryDate = new Date(subscription.current_period_end * 1000);
+                }
+
+                // Dacă data e invalidă (Invalid Date) sau null, punem manual 30 de zile
+                if (!expiryDate || isNaN(expiryDate.getTime())) {
+                    console.log("⚠️ Data Stripe invalidă, folosim fallback 30 zile.");
+                    const now = new Date();
+                    now.setDate(now.getDate() + 30);
+                    expiryDate = now;
+                }
+
+                user.subscriptionEndDate = expiryDate;
+                console.log(`✅ Abonament setat până la: ${expiryDate}`);
+
+                // Trimitem link Telegram dacă avem datele
+                if (process.env.TELEGRAM_BOT_TOKEN && process.env.TELEGRAM_GROUP_ID && user.telegramChatId) {
+                    try {
+                        const bot = new TelegramBot(process.env.TELEGRAM_BOT_TOKEN);
+                        const inviteLink = await bot.createChatInviteLink(process.env.TELEGRAM_GROUP_ID, { member_limit: 1 });
+                        await bot.sendMessage(user.telegramChatId, `🎉 VIP link: ${inviteLink.invite_link}`);
+                    } catch (tgErr) {
+                        console.error("⚠️ Eroare trimitere link TG:", tgErr.message);
+                    }
+                }
+
+            } catch (subErr) {
+                console.error("❌ Eroare la procesare abonament Stripe:", subErr.message);
+                // Fallback critic: Activăm oricum accesul dacă plata e 'paid'
+                user.subscriptionStatus = 'active';
+                user.stripeCustomerId = session.customer;
+                const fallbackDate = new Date();
+                fallbackDate.setDate(fallbackDate.getDate() + 30);
+                user.subscriptionEndDate = fallbackDate;
+            }
         }
       } 
       // LOGICA CURS
@@ -288,15 +318,17 @@ app.post('/api/verify-payment', async (req, res) => {
       }
 
       await user.save();
+      // Trimitem userul actualizat înapoi
       return res.json({ success: true, updatedUser: user });
     }
 
     res.status(400).json({ success: false, message: "Plata neconfirmată" });
   } catch (error) {
-    console.error("❌ EROARE SERVER DETALIATĂ:", error.message); // Uită-te în log-urile Railway după asta!
+    console.error("❌ EROARE SERVER DETALIATĂ:", error.message); 
     res.status(500).json({ success: false, error: error.message });
   }
 });
+// ---------------------------------------------
 
 app.get('/api/my-courses/:userId', async (req, res) => {
   try {
@@ -402,8 +434,8 @@ app.post('/api/subscriptions/create-checkout-session', async (req, res) => {
           quantity: 1,
         },
       ],
-success_url: `https://novatrader.org/basarili?session_id={CHECKOUT_SESSION_ID}`,
-cancel_url: `https://novatrader.org/abonelikler`,
+      success_url: `https://novatrader.org/basarili?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `https://novatrader.org/abonelikler`,
       
       client_reference_id: userId, 
     });
