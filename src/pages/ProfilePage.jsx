@@ -188,7 +188,7 @@ const ProfilePage = () => {
                     <div className="flex items-center justify-center md:justify-start space-x-2 mb-2">
                       <span className="w-2 h-2 rounded-full bg-yellow-500 animate-pulse"></span>
                       <span className="text-yellow-500 font-bold uppercase tracking-widest text-sm">
-                        Pasif (Erişim Bitiş: {user?.subscriptionEndDate ? new Date(user.subscriptionEndDate).toLocaleDateString('tr-TR') : 'Belirsiz'})
+                        Pasif 
                       </span>
                     </div>
                     <p className="text-gray-400 text-sm">Süreniz dolana kadar VIP erişiminiz devam edecektir.</p>
