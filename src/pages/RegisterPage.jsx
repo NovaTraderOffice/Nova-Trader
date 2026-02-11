@@ -109,19 +109,18 @@ const RegisterPage = () => {
             
             <div className="space-y-2">
               <Label className="text-white">Tam Adınız</Label>
-              <Input type="text" placeholder="Adınız Soyadınız" value={fullName} onChange={(e) => setFullName(e.target.value)} required className="bg-gray-900 border-gray-700 text-white" />
+              <Input type="text" value={fullName} onChange={(e) => setFullName(e.target.value)} required className="bg-gray-900 border-gray-700 text-white" />
             </div>
 
             <div className="space-y-2">
               <Label className="text-white">E-posta</Label>
-              <Input type="email" placeholder="ornek@mail.com" value={email} onChange={(e) => setEmail(e.target.value)} required className="bg-gray-900 border-gray-700 text-white" />
+              <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required className="bg-gray-900 border-gray-700 text-white" />
             </div>
 
             <div className="space-y-2">
               <Label className="text-white">Telefon (Telegram)</Label>
               <Input 
                 type="tel" 
-                placeholder="+90 5XX XXX XX XX" 
                 value={telegramPhone} 
                 onChange={(e) => setTelegramPhone(e.target.value)} 
                 required 
@@ -134,7 +133,6 @@ const RegisterPage = () => {
               <div className="relative">
                 <Input 
                   type={showPassword ? "text" : "password"} 
-                  placeholder="••••••••" 
                   value={password} 
                   onChange={(e) => setPassword(e.target.value)} 
                   required 

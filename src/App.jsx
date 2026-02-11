@@ -13,8 +13,12 @@ import PrivacyNotice from '@/components/PrivacyNotice';
 import TickerTape from '@/components/TickerTape';
 import ScrollProgress from '@/components/ScrollProgress';
 import SocialProof from '@/components/SocialProof';
+import AdminRoute from '@/components/AdminRoute';
 
 // PAGES
+import AdminDashboard from '@/pages/AdminDashboard';
+import SuccessPage from '@/pages/SuccessPage';
+import CoursePlayerPage from '@/pages/CoursePlayerPage';
 import ProfilePage from '@/pages/ProfilePage';
 import HomePage from '@/pages/HomePage';
 import LoginPage from '@/pages/LoginPage';
@@ -80,7 +84,11 @@ function App() {
             <Route path="/kayit" element={<AuthRoute><RegisterPage /></AuthRoute>} />
             
             <Route path="/urunlerim" element={<PrivateRoute><MyProductsPage /></PrivateRoute>} />
-            <Route path="/odeme/:productId" element={<PrivateRoute><CheckoutPage /></PrivateRoute>} />
+            <Route path="/odeme/:courseId" element={<PrivateRoute><CheckoutPage /></PrivateRoute>} />
+
+            <Route path="/kurs/:courseId" element={<PrivateRoute><CoursePlayerPage /></PrivateRoute>} />
+            <Route path="/basarili" element={<PrivateRoute><SuccessPage /></PrivateRoute>} />
+            <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
 
             <Route path="*" element={<NotFoundPage />} />
           </Routes>
@@ -96,7 +104,7 @@ function App() {
         >
           <Send className="w-6 h-6 fill-current" />
           <span className="font-bold hidden md:inline max-w-0 overflow-hidden group-hover:max-w-xs transition-all duration-500 ease-in-out whitespace-nowrap">
-            Destek / Support
+            Destek
           </span>
         </a>
        

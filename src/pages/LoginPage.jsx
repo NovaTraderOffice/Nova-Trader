@@ -65,7 +65,6 @@ if (result.success) {
               <Label className="text-white">E-posta</Label>
               <Input 
                 type="email" 
-                placeholder="ornek@mail.com" 
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
@@ -83,7 +82,6 @@ if (result.success) {
               <div className="relative">
                 <Input 
                   type={showPassword ? "text" : "password"} 
-                  placeholder="••••••••" 
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required

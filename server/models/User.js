@@ -5,6 +5,8 @@ const UserSchema = new mongoose.Schema({
   email: { type: String, required: true, unique: true },
   telegramPhone: { type: String }, 
   password: { type: String, required: true },
+  purchasedCourses: [{ type: String }],
+  role: { type: String, enum: ['user', 'admin'], default: 'user' },
   
   // Verificare & Telegram
   isVerified: { type: Boolean, default: false },

@@ -1,85 +1,149 @@
-
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet';
-import { useParams } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { CreditCard, Lock } from 'lucide-react';
+import { Loader2, Lock, ShieldCheck } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
-import { useToast } from '@/components/ui/use-toast';
+import { API_URL } from '@/lib/api';
+import { useAuth } from '@/contexts/AuthContext';
 
-const CheckoutPage = () => {
-  const { productId } = useParams();
-  const { toast } = useToast();
+const PaymentPage = () => {
+  const { courseId } = useParams(); // Luăm ID-ul cursului din URL
+  const navigate = useNavigate();
+  
+  const [course, setCourse] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  const mockProducts = {
-    '1': { name: 'Temel Borsa Eğitimi', price: 149, category: 'kurslar' },
-    '2': { name: 'İleri Seviye Trading', price: 249, category: 'kurslar' },
-    '5': { name: 'Komple Eğitim Paketi', price: 299, category: 'kurslar' },
-    'sub_vip_149': { name: 'VIP Üyelik', price: 149, category: 'abonelik' }
-  };
+  const { user } = useAuth();
+  const [isProcessing, setIsProcessing] = useState(false);
 
-  const product = mockProducts[productId] || { name: 'Ürün', price: 0, category: 'kurslar' };
+  // Tragem datele cursului din baza de date
+  useEffect(() => {
+    const fetchCourse = async () => {
+      try {
+        const res = await fetch(`${API_URL}/courses/${courseId}`);
+        const data = await res.json();
+        setCourse(data);
+      } catch (error) {
+        console.error("Eroare la preluarea cursului pentru plată:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchCourse();
+  }, [courseId]);
 
-  const handlePayment = () => {
-    toast({
-      title: "🚧 Ödeme Entegrasyonu Bekleniyor",
-      description: "Bu özellik yakında eklenecek! Bir sonraki mesajınızda isteyebilirsiniz! 🚀",
-    });
+  if (loading) {
+    return (
+      <div className="min-h-screen flex justify-center items-center bg-[#0f0f0f]">
+        <Loader2 className="w-12 h-12 animate-spin text-yellow-500" />
+      </div>
+    );
+  }
+
+  if (!course) {
+    return <div className="text-white text-center pt-20">Kurs bulunamadı. (Cursul nu a fost găsit)</div>;
+  }
+
+const handleCheckout = async () => {
+    setIsProcessing(true);
+    try {
+      const response = await fetch(`${API_URL}/create-checkout-session`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          courseId: course._id,
+          title: course.title,
+          price: course.price,
+          userId: user._id || user.id // Trimitem ID-ul userului ca să știm cine plătește
+        })
+      });
+
+      const data = await response.json();
+
+      // Dacă Stripe ne-a dat link-ul, redirecționăm!
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        alert("Eroare la procesarea plății.");
+        setIsProcessing(false);
+      }
+    } catch (error) {
+      console.error("Eroare plată:", error);
+      setIsProcessing(false);
+    }
   };
 
   return (
     <>
       <Helmet>
-        <title>Ödeme - {product.name}</title>
-        <meta name="description" content={`NovaTrader platformunda ${product.name} için ödeme yapın.`} />
+        <title>Güvenli Ödeme - NovaTrader</title>
       </Helmet>
-      <div className="container mx-auto px-4 py-20">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          className="max-w-2xl mx-auto"
-        >
-          <h1 className="text-4xl font-bold text-center mb-4">
-            <span className="gold-text">Güvenli Ödeme</span>
-          </h1>
-          <p className="text-gray-400 text-center mb-12">Siparişinizi tamamlamak için son bir adım kaldı.</p>
 
-          <div className="premium-card p-8">
-            <h2 className="text-2xl font-bold mb-6">Sipariş Özeti</h2>
-            
-            <div className="border-b border-gray-700 pb-6 mb-6">
-              <div className="flex justify-between items-center">
-                <div className="flex items-center">
-                  <img className="w-16 h-16 rounded-lg object-cover mr-4" alt={product.name} src="https://images.unsplash.com/photo-1671376354106-d8d21e55dddd" />
-                  <div>
-                    <p className="font-semibold text-lg">{product.name}</p>
-                    <p className="text-sm text-gray-400">{product.category === 'abonelik' ? 'Aylık Abonelik' : 'Tek Seferlik Kurs'}</p>
-                  </div>
-                </div>
-                <p className="text-2xl font-bold gold-text">{product.price}€</p>
-              </div>
+      <div className="min-h-[80vh] flex flex-col items-center pt-20 pb-12 px-4 bg-[#0f0f0f] text-white">
+        
+        {/* Titlu Pagină */}
+        <div className="text-center mb-8">
+          <h1 className="text-3xl font-bold gold-text mb-2">Güvenli Ödeme</h1>
+          <p className="text-gray-400">Siparişinizi tamamlamak için son bir adım kaldı.</p>
+        </div>
+
+        {/* Cardul de Plată */}
+        <div className="w-full max-w-md bg-[#121212] border border-yellow-600/30 rounded-xl p-6 shadow-2xl">
+          <h2 className="text-xl font-bold mb-6 text-white border-b border-gray-800 pb-4">Sipariş Özeti</h2>
+          
+          {/* Detalii Curs dinamic */}
+          <div className="flex items-center mb-6">
+            <img 
+              src={course.thumbnail} 
+              alt={course.title} 
+              className="w-16 h-16 object-cover rounded-md border border-gray-700 mr-4"
+            />
+            <div className="flex-grow">
+              <h3 className="font-bold text-gray-200">{course.title}</h3>
+              <p className="text-xs text-gray-500">
+                {course.isBundle ? 'Eğitim Paketi' : 'Tek Seferlik Kurs'}
+              </p>
             </div>
-
-            <div className="flex justify-between items-center mb-8">
-              <p className="text-xl font-semibold">Toplam Tutar</p>
-              <p className="text-3xl font-bold gold-text">{product.price}€</p>
-            </div>
-
-            <Button onClick={handlePayment} className="w-full gold-gradient text-black font-bold text-lg py-6 hover:opacity-90 transition-all duration-300 transform hover:scale-105">
-              <CreditCard className="w-5 h-5 mr-3" />
-              Ödemeyi Tamamla
-            </Button>
-
-            <div className="flex items-center justify-center mt-6 text-sm text-gray-500">
-              <Lock className="w-4 h-4 mr-2" />
-              <span>Tüm işlemler 256-bit SSL şifrelemesi ile korunmaktadır.</span>
+            <div className="font-bold text-lg text-yellow-500">
+              {course.price}€
             </div>
           </div>
-        </motion.div>
+
+          <div className="border-t border-gray-800 pt-4 mb-6">
+            <div className="flex justify-between items-center font-bold text-lg">
+              <span>Toplam Tutar</span>
+              <span className="text-yellow-500 text-2xl">{course.price}€</span>
+            </div>
+          </div>
+
+          {/* Buton Plată */}
+<Button 
+            disabled={isProcessing}
+            onClick={handleCheckout}
+            className="w-full gold-gradient text-black font-bold text-lg py-6 flex items-center justify-center hover:opacity-90 transition-opacity"
+          >
+            {isProcessing ? (
+               <Loader2 className="w-6 h-6 animate-spin" />
+            ) : (
+               <>
+                 <Lock className="w-5 h-5 mr-2" />
+                 Ödemeyi Tamamla
+               </>
+            )}
+          </Button>
+
+          {/* Securitate */}
+          <div className="mt-6 flex items-center justify-center text-xs text-gray-500">
+            <ShieldCheck className="w-4 h-4 mr-1 text-green-600" />
+            <span>Tüm işlemler 256-bit SSL şifrelemesi ile korunmaktadır.</span>
+          </div>
+        </div>
+
       </div>
     </>
   );
 };
 
-export default CheckoutPage;
+export default PaymentPage;

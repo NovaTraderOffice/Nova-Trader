@@ -43,7 +43,8 @@ exports.login = async (req, res) => {
         id: user._id,
         fullName: user.fullName,
         email: user.email,
-        telegramPhone: user.telegramPhone
+        telegramPhone: user.telegramPhone,
+        role:user.role
       }
     });
   } catch (error) {

@@ -5,6 +5,8 @@ const cors = require('cors');
 const TelegramBot = require('node-telegram-bot-api');
 const User = require('./models/User'); // Avem nevoie de User pt Bot
 const authRoutes = require('./routes/authRoutes'); // Importăm rutele noi
+const Course = require('./models/Course');
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 
 const app = express();
 app.use(express.json());
@@ -130,6 +132,169 @@ if (process.env.TELEGRAM_BOT_TOKEN) {
     }
   });
 }
+
+app.post('/api/create-checkout-session', async (req, res) => {
+  try {
+    const { courseId, title, price, userId } = req.body;
+
+    // Creăm sesiunea de plată pe Stripe
+    const session = await stripe.checkout.sessions.create({
+      payment_method_types: ['card'],
+      line_items: [
+        {
+          price_data: {
+            currency: 'eur', // Moneda ta (euro)
+            product_data: {
+              name: title, // Numele cursului
+            },
+            unit_amount: price * 100, // Stripe calculează în cenți (119€ = 11900 cenți)
+          },
+          quantity: 1,
+        },
+      ],
+      mode: 'payment',
+      // Unde îl trimite după ce plătește cu succes
+      success_url: `${process.env.CLIENT_URL}/basarili?session_id={CHECKOUT_SESSION_ID}&course_id=${courseId}`,
+      // Unde îl trimite dacă dă "Cancel" (Înapoi la cursuri)
+      cancel_url: `${process.env.CLIENT_URL}/kurslar`,
+      
+      // Aici ascundem ID-urile ca să știm CE și CINE a cumpărat după ce se termină plata
+      metadata: {
+        userId: userId,
+        courseId: courseId
+      }
+    });
+
+    // Răspundem cu link-ul generat de Stripe
+    res.json({ url: session.url });
+
+  } catch (error) {
+    console.error("Eroare la Stripe:", error);
+    res.status(500).json({ error: 'Nu s-a putut genera plata' });
+  }
+});
+
+app.post('/api/verify-payment', async (req, res) => {
+  try {
+    const { sessionId, courseId, userId } = req.body;
+
+    // 1. Întrebăm Stripe dacă sesiunea asta chiar a fost plătită
+    const session = await stripe.checkout.sessions.retrieve(sessionId);
+
+    if (session.payment_status === 'paid') {
+      // 2. Găsim utilizatorul în baza de date
+      const User = require('./models/User'); // Ne asigurăm că avem modelul
+      const user = await User.findById(userId);
+
+      if (user) {
+        // 3. Dacă nu are deja cursul, i-l adăugăm în "buzunar"
+        if (!user.purchasedCourses.includes(courseId)) {
+          user.purchasedCourses.push(courseId);
+          await user.save();
+        }
+        return res.json({ success: true, message: "Curs activat!" });
+      }
+    }
+
+    res.status(400).json({ success: false, message: "Plata nu a fost confirmată." });
+  } catch (error) {
+    console.error("Eroare la verificarea plății:", error);
+    res.status(500).json({ success: false, error: 'Eroare server' });
+  }
+});
+
+app.get('/api/my-courses/:userId', async (req, res) => {
+  try {
+    const User = require('./models/User');
+    const Course = require('./models/Course');
+    
+    // Găsim userul
+    const user = await User.findById(req.params.userId);
+    if (!user) return res.status(404).json({ message: "User negăsit" });
+
+    // Căutăm în baza de date DOAR cursurile care au ID-ul în buzunarul userului
+    const purchasedCourses = await Course.find({ 
+      _id: { $in: user.purchasedCourses } 
+    });
+
+    res.json(purchasedCourses);
+  } catch (error) {
+    console.error("Eroare la preluarea cursurilor:", error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.get('/api/courses', async (req, res) => {
+  try {
+    const courses = await Course.find();
+    res.json(courses);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get('/api/courses/:id', async (req, res) => {
+  try {
+    const course = await Course.findById(req.params.id);
+    if (!course) return res.status(404).json({ message: "Kurs bulunamadı" });
+    res.json(course);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/courses', async (req, res) => {
+  try {
+    const Course = require('./models/Course');
+    const newCourse = new Course(req.body);
+    await newCourse.save();
+    res.status(201).json(newCourse);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.put('/api/courses/:id', async (req, res) => {
+  try {
+    const Course = require('./models/Course');
+    // { new: true } returnează cursul actualizat
+    const updatedCourse = await Course.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    res.json(updatedCourse);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.delete('/api/courses/:id', async (req, res) => {
+  try {
+    const Course = require('./models/Course');
+    await Course.findByIdAndDelete(req.params.id);
+    res.json({ message: 'Cursul a fost șters cu succes!' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get('/api/admin/users', async (req, res) => {
+  try {
+    // Luăm toți utilizatorii, dar fără parole!
+    const users = await User.find().select('-password');
+    res.json(users);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// --- ADMIN: SCHIMBĂ ROLUL UNUI UTILIZATOR (User <-> Admin) ---
+app.put('/api/admin/users/:id/role', async (req, res) => {
+  try {
+    const { role } = req.body;
+    const user = await User.findByIdAndUpdate(req.params.id, { role }, { new: true }).select('-password');
+    res.json(user);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`🚀 Server pe portul ${PORT}`));

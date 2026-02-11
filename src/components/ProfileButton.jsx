@@ -61,11 +61,6 @@ const ProfileButton = () => {
             
             <DropdownMenuGroup>
               {/* BUTON NOU: PROFIL */}
-              <DropdownMenuItem onSelect={() => navigate('/profil')} className="cursor-pointer focus:bg-yellow-600/20">
-                <Settings className="mr-2 h-4 w-4" />
-                <span>Profilul Meu</span>
-              </DropdownMenuItem>
-
               <DropdownMenuItem onSelect={() => navigate('/urunlerim')} className="cursor-pointer focus:bg-yellow-600/20">
                 <Package className="mr-2 h-4 w-4" />
                 <span>Ürünlerim</span>
