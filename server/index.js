@@ -378,7 +378,7 @@ app.post('/api/subscriptions/create-portal-session', async (req, res) => {
 
 const PORT = process.env.PORT || 5000;
 const path = require('path');
-app.get('*', (req, res) => {
+app.get('/*', (req, res) => {
   res.sendFile(path.join(__dirname, '../index.html')); 
 });
 app.listen(PORT, () => console.log(`🚀 Server pe portul ${PORT}`));
