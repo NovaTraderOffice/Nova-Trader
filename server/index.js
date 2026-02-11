@@ -209,7 +209,6 @@ app.post('/api/create-checkout-session', async (req, res) => {
         courseId: courseId
       }
     });
-
     res.json({ url: session.url });
 
   } catch (error) {
