@@ -5,6 +5,7 @@ const cors = require('cors');
 const TelegramBot = require('node-telegram-bot-api');
 const User = require('./models/User'); 
 const authRoutes = require('./routes/authRoutes');
+const cron = require('node-cron');
 const Course = require('./models/Course');
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 
@@ -98,6 +99,7 @@ mongoose.connect(process.env.MONGO_URI)
 
 app.use('/api', authRoutes);
 
+// --- ZONA MODIFICATĂ: BOT TELEGRAM ---
 if (process.env.TELEGRAM_BOT_TOKEN && process.env.ENABLE_BOT === 'true') {
   const bot = new TelegramBot(process.env.TELEGRAM_BOT_TOKEN, { polling: true });
   console.log('Botul Telegram a pornit');
@@ -105,9 +107,76 @@ if (process.env.TELEGRAM_BOT_TOKEN && process.env.ENABLE_BOT === 'true') {
   bot.on('message', async (msg) => {
     const chatId = msg.chat.id;
     const type = msg.chat.type;
+    const text = msg.text ? msg.text.trim() : '';
+
     if (type === 'group' || type === 'supergroup') {
         return;
     }
+
+    // --- COMANDA /STATUS ---
+    if (text === '/status') {
+        try {
+          const user = await User.findOne({ telegramChatId: chatId.toString() });
+          
+          if (user) {
+            let statusMessage = `👤 <b>Profil:</b> ${user.fullName}\n`;
+            
+            if (user.subscriptionStatus === 'active' || user.subscriptionStatus === 'pending_cancel') {
+               const date = user.subscriptionEndDate ? new Date(user.subscriptionEndDate).toLocaleDateString('ro-RO') : 'Nelimitat';
+               statusMessage += `✅ <b>Status VIP:</b> ACTIV\n📅 <b>Expiră la:</b> ${date}`;
+            } else {
+               statusMessage += `❌ <b>Status VIP:</b> INACTIV\nTe așteptăm înapoi pe site!`;
+            }
+            
+            bot.sendMessage(chatId, statusMessage, { parse_mode: 'HTML' });
+          } else {
+            bot.sendMessage(chatId, "Nu te găsesc în baza de date. Ai cont pe site?");
+          }
+        } catch (err) {
+          console.error(err);
+        }
+        return;
+    }
+
+    // --- COMANDA /BROADCAST (ADMIN ONLY) ---
+    if (text.startsWith('/broadcast')) {
+        const adminId = process.env.ADMIN_TELEGRAM_ID; 
+
+        if (chatId.toString() !== adminId) {
+          bot.sendMessage(chatId, "⛔ Nu ai permisiunea să folosești această comandă.");
+          return;
+        }
+  
+        const messageToSend = text.replace('/broadcast', '').trim();
+        if (!messageToSend) {
+          bot.sendMessage(chatId, "Scrie un mesaj după comandă. Ex: /broadcast Salut tuturor!");
+          return;
+        }
+  
+        bot.sendMessage(chatId, "⏳ Încep trimiterea mesajelor...");
+        
+        try {
+          // Găsim toți userii care au interacționat cu botul
+          const users = await User.find({ telegramChatId: { $ne: null } });
+          let successCount = 0;
+  
+          for (const user of users) {
+            try {
+              await bot.sendMessage(user.telegramChatId, `📢 <b>ANUNȚ IMPORTANT:</b>\n\n${messageToSend}`, { parse_mode: 'HTML' });
+              successCount++;
+            } catch (e) {
+              console.log(`Nu am putut trimite la ${user.email}`);
+            }
+          }
+  
+          bot.sendMessage(chatId, `✅ Mesaj trimis cu succes la ${successCount} utilizatori.`);
+        } catch (err) {
+          bot.sendMessage(chatId, "Eroare la broadcast.");
+          console.error(err);
+        }
+        return;
+    }
+    // ----------------------------------------
 
     // 2. LOGICA DE VERIFICARE NUMĂR TELEFON
     if (msg.contact) {
@@ -154,7 +223,9 @@ if (process.env.TELEGRAM_BOT_TOKEN && process.env.ENABLE_BOT === 'true') {
 
     // 3. LOGICA DE VERIFICARE COD (TEXT)
     if (msg.text) {
-      const text = msg.text.trim();
+      // Ignorăm /status și /broadcast aici ca să nu dea eroare de "cod invalid"
+      if (text.startsWith('/status') || text.startsWith('/broadcast')) return;
+
       console.log(`Primit text în privat: ${text}`);
 
       if (text === '/start') {
@@ -203,6 +274,7 @@ if (process.env.TELEGRAM_BOT_TOKEN && process.env.ENABLE_BOT === 'true') {
     }
   });
 }
+// ------------------------------------
 
 app.post('/api/create-checkout-session', async (req, res) => {
   try {
@@ -241,7 +313,7 @@ app.post('/api/create-checkout-session', async (req, res) => {
   }
 });
 
-// --- RUTA MODIFICATĂ CU PROTECȚIE LA DATE ---
+// --- RUTA VERIFY-PAYMENT (Rămâne neschimbată) ---
 app.post('/api/verify-payment', async (req, res) => {
   try {
     const { sessionId, userId, courseId } = req.body;
@@ -318,7 +390,6 @@ app.post('/api/verify-payment', async (req, res) => {
       }
 
       await user.save();
-      // Trimitem userul actualizat înapoi
       return res.json({ success: true, updatedUser: user });
     }
 
@@ -450,7 +521,7 @@ app.post('/api/subscriptions/create-checkout-session', async (req, res) => {
 app.post('/api/subscriptions/create-portal-session', async (req, res) => {
   try {
     const { userId } = req.body;
-    console.log("Portal Session solicitat pentru UserID:", userId); // Debug 1
+    console.log("Portal Session solicitat pentru UserID:", userId);
 
     if (!userId) {
         return res.status(400).json({ error: "Frontend-ul nu a trimis userId!" });
@@ -463,7 +534,7 @@ app.post('/api/subscriptions/create-portal-session', async (req, res) => {
         return res.status(400).json({ error: "Userul nu există în baza de date." });
     }
 
-    console.log(`🔍 User găsit: ${user.email} | StripeCustomer: ${user.stripeCustomerId}`); // Debug 2
+    console.log(`🔍 User găsit: ${user.email} | StripeCustomer: ${user.stripeCustomerId}`);
 
     if (!user.stripeCustomerId) {
       return res.status(400).json({ error: "Userul are status activ, dar lipsește stripeCustomerId din DB." });
@@ -479,6 +550,46 @@ app.post('/api/subscriptions/create-portal-session', async (req, res) => {
   } catch (error) {
     console.error("Eroare la crearea Portalului Stripe:", error);
     res.status(500).json({ error: "Eroare la accesarea portalului: " + error.message });
+  }
+});
+
+cron.schedule('0 10 * * *', async () => {
+  console.log('⏰ Verificăm abonamentele care expiră în curând...');
+  
+  const today = new Date();
+  const threeDaysLater = new Date();
+  threeDaysLater.setDate(today.getDate() + 3);
+  
+  const startOfDay = new Date(threeDaysLater.setHours(0, 0, 0, 0));
+  const endOfDay = new Date(threeDaysLater.setHours(23, 59, 59, 999));
+
+  try {
+    const usersExpiring = await User.find({
+      subscriptionEndDate: { $gte: startOfDay, $lte: endOfDay },
+      subscriptionStatus: { $in: ['active', 'pending_cancel'] },
+      telegramChatId: { $ne: null }
+    });
+
+    if (usersExpiring.length > 0) {
+      const bot = new TelegramBot(process.env.TELEGRAM_BOT_TOKEN);
+      
+      for (const user of usersExpiring) {
+        try {
+          await bot.sendMessage(
+            user.telegramChatId, 
+            `⚠️ <b>Atenție, ${user.fullName}!</b>\n\nAbonamentul tău VIP expiră în 3 zile (${user.subscriptionEndDate.toLocaleDateString()}).\n\nAsigură-te că ai fonduri pe card pentru a nu pierde accesul la grup.`,
+            { parse_mode: 'HTML' }
+          );
+          console.log(`📩 Notificare trimisă către ${user.email}`);
+        } catch (err) {
+          console.error(`Eroare trimitere mesaj la ${user.email}:`, err.message);
+        }
+      }
+    } else {
+      console.log('✅ Niciun abonament nu expiră peste 3 zile.');
+    }
+  } catch (error) {
+    console.error('❌ Eroare la Cron Job:', error);
   }
 });
 
