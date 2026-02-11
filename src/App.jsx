@@ -60,16 +60,18 @@ const AuthRoute = ({ children }) => {
 function App() {
   const TELEGRAM_SUPPORT_USERNAME = "NovaTrader_SupportBot"; 
 
-  const isMaintenanceMode = import.meta.env.VITE_MAINTENANCE === 'true';
+  const isMaintenanceMode = import.meta.env.VITE_MAINTENANCE === 'true' || false;
 
   if (isMaintenanceMode) {
     return (
-      <Routes>
-        <Route path="*" element={<ComingSoonPage />} />
-      </Routes>
+      <div className="min-h-screen bg-[#050505] text-white">
+        <Routes>
+          <Route path="*" element={<ComingSoonPage />} />
+        </Routes>
+      </div>
     );
   }
-
+  
   return (
     <> 
       <ScrollToTop />
