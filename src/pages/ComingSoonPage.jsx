@@ -33,21 +33,6 @@ const ComingSoonPage = () => {
           Nova Trader ile borsa ve yatırım dünyasında yeni un standarda hazırlanın. 
           Eğitim platformumuz kapılarını açmak üzere.
         </p>
-
-        {/* Formular de abonare */}
-        <div className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto mb-16">
-          <input 
-            type="email" 
-            placeholder="E-posta adresinizi bırakın..."
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="flex-1 bg-white/5 border border-white/10 rounded-xl px-6 py-4 text-white outline-none focus:border-yellow-500/50 transition-all"
-          />
-          <button className="gold-gradient text-black font-bold px-8 py-4 rounded-xl flex items-center justify-center group">
-            <Bell className="w-4 h-4 mr-2 group-hover:rotate-12 transition-transform" />
-            Haber Ver
-          </button>
-        </div>
       </div>
 
       {/* Footer mic */}
