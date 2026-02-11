@@ -51,29 +51,36 @@ const ProfilePage = () => {
     }
   };
 
-  const handleManageSubscription = async () => {
-    setLoadingPortal(true);
-    try {
-      const response = await fetch(`${API_URL}/subscriptions/create-portal-session`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: user.id })
-      });
+const handleManageSubscription = async () => {
+setLoadingPortal(true);
+ 
+// FIX: Verificăm ambele variante de ID (MongoDB style vs Normal)
+ const actualUserId = user?._id || user?.id;
 
-      const data = await response.json();
-
-      if (data.url) {
-        window.location.href = data.url; 
-      } else {
-        toast({ variant: "destructive", title: "Hata", description: data.error || "Nu s-a putut deschide portalul." });
-      }
-    } catch (error) {
-      console.error("Eroare rețea:", error);
-      toast({ variant: "destructive", title: "Hata", description: "A apărut o eroare de conexiune." });
-    } finally {
-      setLoadingPortal(false);
-    }
-  };
+ if (!actualUserId) {
+   toast({ variant: "destructive", title: "Hata", description: "Kullanıcı ID bulunamadı. Lütfen tekrar giriş yapın." });
+   setLoadingPortal(false);
+   return;
+ }
+ try {
+   const response = await fetch(`${API_URL}/subscriptions/create-portal-session`, {
+     method: 'POST',
+     headers: { 'Content-Type': 'application/json' },
+     body: JSON.stringify({ userId: actualUserId }) // <--- Aici trimitem ID-ul corect
+   });
+   const data = await response.json();
+   if (data.url) {
+     window.location.href = data.url; 
+ } else {
+ toast({ variant: "destructive", title: "Hata", description: data.error || "Portal açılamadı." });
+ }
+ } catch (error) {
+  console.error("Eroare rețea:", error);
+ toast({ variant: "destructive", title: "Hata", description: "Bağlantı hatası oluştu." });
+ } finally {
+  setLoadingPortal(false);
+ }
+};
 
   return (
     <>
