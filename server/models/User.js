@@ -7,6 +7,15 @@ const UserSchema = new mongoose.Schema({
   password: { type: String, required: true },
   purchasedCourses: [{ type: String }],
   role: { type: String, enum: ['user', 'admin'], default: 'user' },
+
+  stripeCustomerId: {
+    type: String,
+    default: null
+  },
+  subscriptionStatus: {
+    type: String,
+    default: 'inactive'
+  },
   
   // Verificare & Telegram
   isVerified: { type: Boolean, default: false },

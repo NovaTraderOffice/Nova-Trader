@@ -20,7 +20,7 @@ exports.register = async (req, res) => {
     res.status(201).json({ 
       message: 'Cont creat!', 
       verificationCode,
-      botUsername: 'NovaTrader_SupportBot' // Pune username-ul botului tau aici
+      botUsername: 'NovaTrader_SupportBot'
     });
   } catch (error) {
     res.status(500).json({ message: 'Eroare server.' });
@@ -44,7 +44,9 @@ exports.login = async (req, res) => {
         fullName: user.fullName,
         email: user.email,
         telegramPhone: user.telegramPhone,
-        role:user.role
+        role: user.role,
+        subscriptionStatus: user.subscriptionStatus, 
+        stripeCustomerId: user.stripeCustomerId
       }
     });
   } catch (error) {
@@ -71,7 +73,10 @@ exports.updateProfile = async (req, res) => {
         id: user._id,
         fullName: user.fullName,
         email: user.email,
-        telegramPhone: user.telegramPhone
+        telegramPhone: user.telegramPhone,
+        role: user.role, 
+        subscriptionStatus: user.subscriptionStatus,
+        stripeCustomerId: user.stripeCustomerId
       }
     });
   } catch (error) {

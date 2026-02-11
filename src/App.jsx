@@ -60,7 +60,7 @@ const AuthRoute = ({ children }) => {
 function App() {
   const TELEGRAM_SUPPORT_USERNAME = "NovaTrader_SupportBot"; 
 
-  const isMaintenanceMode = import.meta.env.VITE_MAINTENANCE === 'true' || false;
+  const isMaintenanceMode = import.meta.env.VITE_MAINTENANCE === 'false' || false;
 
   if (isMaintenanceMode) {
     return (
