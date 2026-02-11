@@ -5,7 +5,6 @@ const cors = require('cors');
 const TelegramBot = require('node-telegram-bot-api');
 const User = require('./models/User'); 
 const authRoutes = require('./routes/authRoutes');
-const cron = require('node-cron');
 const Course = require('./models/Course');
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 
@@ -483,47 +482,6 @@ app.post('/api/subscriptions/create-portal-session', async (req, res) => {
   }
 });
 
-cron.schedule('0 10 * * *', async () => {
-  console.log('⏰ Verificăm abonamentele care expiră în curând...');
-  
-  const today = new Date();
-  const threeDaysLater = new Date();
-  threeDaysLater.setDate(today.getDate() + 3);
-  
-  // Setăm intervalul pentru ziua respectivă (între 00:00 și 23:59)
-  const startOfDay = new Date(threeDaysLater.setHours(0, 0, 0, 0));
-  const endOfDay = new Date(threeDaysLater.setHours(23, 59, 59, 999));
-
-  try {
-    // Căutăm useri care expiră exact peste 3 zile
-    const usersExpiring = await User.find({
-      subscriptionEndDate: { $gte: startOfDay, $lte: endOfDay },
-      subscriptionStatus: { $in: ['active', 'pending_cancel'] },
-      telegramChatId: { $ne: null } // Doar cei care au botul conectat
-    });
-
-    if (usersExpiring.length > 0) {
-      const bot = new TelegramBot(process.env.TELEGRAM_BOT_TOKEN);
-      
-      for (const user of usersExpiring) {
-        try {
-          await bot.sendMessage(
-            user.telegramChatId, 
-            `⚠️ <b>Atenție, ${user.fullName}!</b>\n\nAbonamentul tău VIP expiră în 3 zile (${user.subscriptionEndDate.toLocaleDateString()}).\n\nAsigură-te că ai fonduri pe card pentru a nu pierde accesul la grup.`,
-            { parse_mode: 'HTML' }
-          );
-          console.log(`📩 Notificare trimisă către ${user.email}`);
-        } catch (err) {
-          console.error(`Eroare trimitere mesaj la ${user.email}:`, err.message);
-        }
-      }
-    } else {
-      console.log('✅ Niciun abonament nu expiră peste 3 zile.');
-    }
-  } catch (error) {
-    console.error('❌ Eroare la Cron Job:', error);
-  }
-});
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`🚀 Server pe portul ${PORT}`));
