@@ -15,35 +15,29 @@ app.post('/api/webhook', express.raw({ type: 'application/json' }), async (req, 
   let event;
 
   try {
+    // Verificăm semnătura originală de la Stripe
     event = stripe.webhooks.constructEvent(req.body, sig, process.env.STRIPE_WEBHOOK_SECRET);
-
-    event = JSON.parse(req.body);
+    console.log("✅ Webhook valid primit:", event.type);
   } catch (err) {
     console.error('⚠️ Eroare la semnatura Webhook:', err.message);
     return res.status(400).send(`Webhook Error: ${err.message}`);
   }
 
-  const User = require('./models/User');
-
+  // Procesăm evenimentul
   if (event.type === 'customer.subscription.deleted') {
     const subscription = event.data.object;
     const stripeCustomerId = subscription.customer;
 
     try {
-      const user = await User.findOne({ stripeCustomerId: stripeCustomerId });
+      const user = await User.findOne({ stripeCustomerId });
       
       if (user) {
         user.subscriptionStatus = 'inactive';
         await user.save();
-        console.log(`❌ Abonament anulat automat pentru utilizatorul: ${user.email}`);
-
-        // if (user.telegramChatId) {
-        //   bot.banChatMember(process.env.TELEGRAM_GROUP_ID, user.telegramChatId);
-        // }
-        
+        console.log(`❌ Abonament dezactivat pentru: ${user.email}`);
       }
     } catch (err) {
-      console.error("Eroare la anularea abonamentului în DB:", err);
+      console.error("❌ Eroare DB Webhook:", err);
     }
   }
 
