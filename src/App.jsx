@@ -16,6 +16,7 @@ import SocialProof from '@/components/SocialProof';
 import AdminRoute from '@/components/AdminRoute';
 
 // PAGES
+import ComingSoonPage from '@/pages/ComingSoonPage';
 import AdminDashboard from '@/pages/AdminDashboard';
 import SuccessPage from '@/pages/SuccessPage';
 import CoursePlayerPage from '@/pages/CoursePlayerPage';
@@ -58,6 +59,16 @@ const AuthRoute = ({ children }) => {
 
 function App() {
   const TELEGRAM_SUPPORT_USERNAME = "NovaTrader_SupportBot"; 
+
+  const isMaintenanceMode = import.meta.env.VITE_MAINTENANCE === 'true';
+
+  if (isMaintenanceMode) {
+    return (
+      <Routes>
+        <Route path="*" element={<ComingSoonPage />} />
+      </Routes>
+    );
+  }
 
   return (
     <> 
