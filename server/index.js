@@ -90,7 +90,18 @@ if (process.env.TELEGRAM_BOT_TOKEN && process.env.ENABLE_BOT === 'true') {
 
   bot.on('message', async (msg) => {
     const chatId = msg.chat.id;
+    const type = msg.chat.type; // 'private', 'group', sau 'supergroup'
     
+    // 1. AFLAREA ID-ului DE GRUP
+    // Dacă mesajul e de pe un grup, doar afișăm ID-ul în consolă și ne oprim.
+    if (type === 'group' || type === 'supergroup') {
+        console.log(`📢 MESAJE GRUP (ID): ${chatId} | Trimis de: ${msg.from.first_name}`);
+        return; // <--- ASTA OPREȘTE BOTUL SĂ RĂSPUNDĂ PE GRUP
+    }
+
+    // De aici în jos, codul rulează DOAR în privat (Private Chat)
+    
+    // 2. LOGICA DE VERIFICARE NUMĂR TELEFON
     if (msg.contact) {
       console.log(`📞 Primit contact de la ${msg.from.first_name}: ${msg.contact.phone_number}`);
       if (msg.contact.user_id !== msg.from.id) {
@@ -124,7 +135,7 @@ if (process.env.TELEGRAM_BOT_TOKEN && process.env.ENABLE_BOT === 'true') {
 
           bot.sendMessage(chatId, `🎉 Tebrikler, ${user.fullName}! Hesabınız doğrulandı.`, opts);
         } else {
-          console.log(`❌ Nu am găsit user cu chatId ${chatId}`);
+          console.log(`❌ Nu am găsit user cu chatId ${chatId} (poate nu a trimis codul înainte)`);
           bot.sendMessage(chatId, "❌ Hata: Önce kodu göndermelisiniz.");
         }
       } catch (error) {
@@ -133,9 +144,10 @@ if (process.env.TELEGRAM_BOT_TOKEN && process.env.ENABLE_BOT === 'true') {
       return; 
     }
 
+    // 3. LOGICA DE VERIFICARE COD (TEXT)
     if (msg.text) {
       const text = msg.text.trim();
-      console.log(`📩 Primit text: ${text}`);
+      console.log(`📩 Primit text în privat: ${text}`);
 
       if (text === '/start') {
         bot.sendMessage(chatId, "Merhaba! Lütfen siteden aldığınız doğrulama kodunu gönderin.");
@@ -143,6 +155,7 @@ if (process.env.TELEGRAM_BOT_TOKEN && process.env.ENABLE_BOT === 'true') {
       }
 
       try {
+        // Căutăm userul care are acest cod generat în site
         const user = await User.findOne({ verificationCode: text });
 
         if (user) {
@@ -151,6 +164,7 @@ if (process.env.TELEGRAM_BOT_TOKEN && process.env.ENABLE_BOT === 'true') {
           if (user.isVerified) {
              bot.sendMessage(chatId, "✅ Hesabınız zaten doğrulandı!");
           } else {
+             // Salvăm ChatID-ul temporar ca să știm cui îi cerem telefonul
              user.telegramChatId = chatId.toString();
              await user.save();
              console.log(`🔗 ChatID ${chatId} legat de userul ${user.email}`);
