@@ -27,7 +27,7 @@ router.post('/forgot-password', async (req, res) => {
 
     await user.save();
 
-    const resetUrl = `https://novatrader.org/resetare-parola/${resetToken}`;
+    const resetUrl = `https://novatrader.org/reset-password/${resetToken}`;
 
     const message = `Parola sıfırlama talebinde bulundunuz. Yeni bir parola belirlemek için lütfen bu bağlantıya gidin:\n\n${resetUrl}`;
 

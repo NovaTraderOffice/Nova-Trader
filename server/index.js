@@ -105,7 +105,10 @@ const limiter = rateLimit({
 
 app.use(limiter);
 
-app.use(morgan('dev'));
+morgan.token('remote-addr', function (req) {
+    return req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+});
+app.use(morgan(':remote-addr :method :url :status :response-time ms'));
 
 mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log('Conectat la MongoDB Atlas'))
