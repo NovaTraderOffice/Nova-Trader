@@ -75,7 +75,7 @@ if (result.success) {
             <div className="space-y-2">
               <div className="flex justify-between">
                 <Label className="text-white">Şifre</Label>
-                <Link to="/uitat-parola" class="text-xs text-yellow-500 hover:underline">Şifremi Unuttum?</Link>
+                <Link to="/forgot-password" class="text-xs text-yellow-500 hover:underline">Şifremi Unuttum?</Link>
               </div>
               
               {/* MODIFICAREA ESTE AICI: Wrapper Relative + Buton Toggle */}

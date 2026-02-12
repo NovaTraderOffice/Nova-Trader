@@ -104,8 +104,8 @@ function App() {
             <Route path="/kurs/:courseId" element={<PrivateRoute><CoursePlayerPage /></PrivateRoute>} />
             <Route path="/basarili" element={<PrivateRoute><SuccessPage /></PrivateRoute>} />
             <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
-            <Route path="/uitat-parola" element={<ForgotPasswordPage />} />
-            <Route path="/resetare-parola/:token" element={<ResetPasswordPage />} />
+            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+            <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
 
             <Route path="*" element={<NotFoundPage />} />
           </Routes>
