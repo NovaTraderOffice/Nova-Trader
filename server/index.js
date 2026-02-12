@@ -13,6 +13,8 @@ const logger = require('./utils/logger');
 
 const app = express();
 
+app.set('trust proxy', 1);
+
 app.post('/api/webhook', express.raw({ type: 'application/json' }), async (req, res) => {
   const sig = req.headers['stripe-signature'];
   let event;
