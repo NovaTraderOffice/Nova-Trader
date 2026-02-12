@@ -22,12 +22,12 @@ const ResetPasswordPage = () => {
     e.preventDefault();
 
     if (password !== confirmPassword) {
-      toast({ variant: "destructive", title: "Eroare", description: "Parolele nu coincid!" });
+      toast({ variant: "destructive", title: "Eroare", description: "Şifreler eşleşmiyor!" });
       return;
     }
 
     if (password.length < 6) {
-        toast({ variant: "destructive", title: "Eroare", description: "Parola trebuie să aibă minim 6 caractere." });
+        toast({ variant: "destructive", title: "Eroare", description: "Parola en az 6 karakterden oluşmalıdır." });
         return;
     }
 
@@ -44,17 +44,17 @@ const ResetPasswordPage = () => {
 
       if (response.ok) {
         toast({ 
-            title: "Succes!", 
-            description: "Parola a fost schimbată. Te poți autentifica acum.",
+            title: "Başarı!", 
+            description: "Parolanız değiştirildi. Şimdi giriş yapabilirsiniz.",
             className: "bg-green-600 text-white border-none"
         });
         // Redirecționăm la login după 2 secunde
         setTimeout(() => navigate('/giris'), 2000);
       } else {
-        toast({ variant: "destructive", title: "Link Expirat", description: data.message || "Link-ul este invalid sau a expirat." });
+        toast({ variant: "destructive", title: "Bağlantının Süresi Doldu", description: data.message || "Bağlantı geçersiz veya süresi dolmuş." });
       }
     } catch (error) {
-      toast({ variant: "destructive", title: "Eroare", description: "Eroare de server." });
+      toast({ variant: "destructive", title: "Hata", description: "Sunucu hatası." });
     } finally {
       setLoading(false);
     }
@@ -62,16 +62,16 @@ const ResetPasswordPage = () => {
 
   return (
     <>
-      <Helmet><title>Parolă Nouă - Nova Trader</title></Helmet>
+      <Helmet><title>Yeni Şifre - Nova Trader</title></Helmet>
       <div className="container mx-auto px-4 py-20 min-h-[80vh] flex items-center justify-center">
         <div className="premium-card p-8 w-full max-w-md bg-[#1a1a1a] border border-yellow-600/20 rounded-xl relative">
           
-          <h1 className="text-2xl font-bold mb-6 text-white text-center">Setează Parolă Nouă</h1>
+          <h1 className="text-2xl font-bold mb-6 text-white text-center">Yeni Şifre Belirle</h1>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             
             <div className="space-y-2">
-              <Label className="text-gray-300">Parolă Nouă</Label>
+              <Label className="text-gray-300">Yeni Şifre</Label>
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 w-4 h-4" />
                 <Input 
@@ -92,7 +92,7 @@ const ResetPasswordPage = () => {
             </div>
 
             <div className="space-y-2">
-              <Label className="text-gray-300">Confirmă Parola</Label>
+              <Label className="text-gray-300">Şifreyi Onayla</Label>
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 w-4 h-4" />
                 <Input 

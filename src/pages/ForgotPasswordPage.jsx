@@ -30,15 +30,15 @@ const ForgotPasswordPage = () => {
       if (response.ok) {
         setSubmitted(true);
         toast({ 
-          title: "Email trimis!", 
-          description: "Verifică-ți inbox-ul (și spam-ul) pentru link-ul de resetare.",
+          title: "E-posta gönderildi!", 
+          description: "Sıfırlama bağlantısı için gelen kutunuzu (ve spam klasörünüzü) kontrol edin.",
           className: "bg-green-600 text-white border-none"
         });
       } else {
         toast({ variant: "destructive", title: "Hata", description: data.message });
       }
     } catch (error) {
-      toast({ variant: "destructive", title: "Hata", description: "Nu am putut conecta la server." });
+      toast({ variant: "destructive", title: "Hata", description: "Sunucuya bağlanamadım." });
     } finally {
       setLoading(false);
     }
@@ -46,7 +46,7 @@ const ForgotPasswordPage = () => {
 
   return (
     <>
-      <Helmet><title>Resetare Parolă - Nova Trader</title></Helmet>
+      <Helmet><title>Şifreyi Sıfırla - Nova Trader</title></Helmet>
       <div className="container mx-auto px-4 py-20 min-h-[80vh] flex items-center justify-center">
         <div className="premium-card p-8 w-full max-w-md bg-[#1a1a1a] border border-yellow-600/20 rounded-xl relative overflow-hidden">
           
@@ -54,12 +54,12 @@ const ForgotPasswordPage = () => {
 
           {!submitted ? (
             <>
-              <h1 className="text-2xl font-bold mb-2 text-white">Ți-ai uitat parola?</h1>
-              <p className="text-gray-400 mb-6 text-sm">Nu-ți face griji. Scrie emailul mai jos și îți trimitem instrucțiunile.</p>
+              <h1 className="text-2xl font-bold mb-2 text-white">Şifrenizi mi unuttunuz?</h1>
+              <p className="text-gray-400 mb-6 text-sm">Merak etmeyin. Aşağıya e-posta adresinizi girin, size talimatları göndereceğiz.</p>
 
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="space-y-2">
-                  <Label className="text-gray-300">Email</Label>
+                  <Label className="text-gray-300">E-posta</Label>
                   <div className="relative">
                     <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 w-4 h-4" />
                     <Input 
@@ -83,17 +83,17 @@ const ForgotPasswordPage = () => {
               <div className="w-16 h-16 bg-green-500/10 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Mail className="w-8 h-8 text-green-500" />
               </div>
-              <h2 className="text-xl font-bold text-white mb-2">Verifică-ți Emailul</h2>
-              <p className="text-gray-400 mb-6">Am trimis un link de resetare către <span className="text-yellow-500">{email}</span></p>
+              <h2 className="text-xl font-bold text-white mb-2">E-postanızı Kontrol Edin</h2>
+              <p className="text-gray-400 mb-6">Sıfırlama bağlantısı gönderdim. <span className="text-yellow-500">{email}</span></p>
               <Button variant="outline" onClick={() => setSubmitted(false)} className="border-gray-700 text-gray-300">
-                Nu ai primit? Trimite iar
+                Almadınız mı? Tekrar gönderin.
               </Button>
             </div>
           )}
 
           <div className="mt-6 text-center">
             <Link to="/giris" className="text-sm text-gray-500 hover:text-white flex items-center justify-center gap-2 transition-colors">
-              <ArrowLeft className="w-4 h-4" /> Înapoi la Autentificare
+              <ArrowLeft className="w-4 h-4" /> Girişe Geri Dön
             </Link>
           </div>
         </div>

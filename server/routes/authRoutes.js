@@ -17,7 +17,7 @@ router.post('/forgot-password', async (req, res) => {
   try {
     const user = await User.findOne({ email });
     if (!user) {
-      return res.status(404).json({ message: "Nu există un cont cu acest email." });
+      return res.status(404).json({ message: "Bu e-posta adresine kayıtlı bir hesap bulunmamaktadır." });
     }
 
     const resetToken = crypto.randomBytes(20).toString('hex');
@@ -34,16 +34,16 @@ router.post('/forgot-password', async (req, res) => {
     try {
       await sendEmail({
         email: user.email,
-        subject: 'Resetare Parolă Nova Trader',
+        subject: 'Nova Trader Şifresini Sıfırla',
         message,
       });
 
-      res.status(200).json({ success: true, message: "Email trimis!" });
+      res.status(200).json({ success: true, message: "E-posta gönderildi!" });
     } catch (err) {
       user.resetPasswordToken = undefined;
       user.resetPasswordExpire = undefined;
       await user.save();
-      return res.status(500).json({ message: "Emailul nu a putut fi trimis." });
+      return res.status(500).json({ message: "E-posta gönderilemedi." });
     }
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -60,7 +60,7 @@ router.put('/reset-password/:token', async (req, res) => {
     });
 
     if (!user) {
-      return res.status(400).json({ message: "Link invalid sau expirat." });
+      return res.status(400).json({ message: "Geçersiz veya süresi dolmuş bağlantı." });
     }
 
    user.password = req.body.password;

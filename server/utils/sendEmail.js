@@ -4,7 +4,6 @@ const { Resend } = require('resend');
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 const sendEmail = async (options) => {
-  console.log(`🚀 [Resend] Pregătesc trimiterea către: ${options.email}`);
 
   try {
     const data = await resend.emails.send({
@@ -19,15 +18,11 @@ const sendEmail = async (options) => {
     });
 
     if (data.error) {
-        console.error("❌ [Resend] Eroare API:", data.error);
         throw new Error(data.error.message);
     }
-
-    console.log(`✅ [Resend] Email trimis cu succes! ID: ${data.data.id}`);
     return data;
 
   } catch (error) {
-    console.error("❌ [Resend] CRASH:", error.message);
     throw error;
   }
 };
