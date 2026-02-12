@@ -1,40 +1,33 @@
-const nodemailer = require('nodemailer');
+const { Resend } = require('resend');
+
+// Inițializăm Resend cu cheia din .env
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 const sendEmail = async (options) => {
-  // Configurare pentru Railway / Cloud Hosting
-  const transporter = nodemailer.createTransport({
-    host: "smtp.gmail.com",
-    port: 587,                 // FOLOSIM 587 (Standard pentru Cloud)
-    secure: false,             // Trebuie FALSE pentru 587 (folosește STARTTLS automat)
-    auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASS,
-    },
-    tls: {
-      ciphers: "SSLv3",
-      rejectUnauthorized: false
-    },
-    family: 4 
-  });
-
-  const message = {
-    from: `"Nova Trader Support" <${process.env.EMAIL_USER}>`,
-    to: options.email,
-    subject: options.subject,
-    text: options.message,
-  };
-
-  console.log(`📨 [SMTP] Încerc conectarea la Gmail pe portul 587...`);
+  console.log(`🚀 [Resend] Pregătesc trimiterea către: ${options.email}`);
 
   try {
-    // Verificăm conexiunea înainte de trimitere
-    await transporter.verify();
-    console.log("✅ [SMTP] Conexiune reușită!");
-    
-    const info = await transporter.sendMail(message);
-    console.log(`✅ [SMTP] Email trimis! ID: ${info.messageId}`);
+    const data = await resend.emails.send({
+      // IMPORTANT: Până validezi domeniul novatrader.org în Resend, 
+      // trebuie să folosești 'onboarding@resend.dev' la 'from'.
+      // După validare, poți pune: 'Suport NovaTrader <suport@novatrader.org>'
+      from: 'Nova Trader <onboarding@resend.dev>', 
+      
+      to: options.email,
+      subject: options.subject,
+      text: options.message,
+    });
+
+    if (data.error) {
+        console.error("❌ [Resend] Eroare API:", data.error);
+        throw new Error(data.error.message);
+    }
+
+    console.log(`✅ [Resend] Email trimis cu succes! ID: ${data.data.id}`);
+    return data;
+
   } catch (error) {
-    console.error("❌ [SMTP] EROARE GRAVĂ:", error);
+    console.error("❌ [Resend] CRASH:", error.message);
     throw error;
   }
 };
