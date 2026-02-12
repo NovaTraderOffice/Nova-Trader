@@ -7,6 +7,9 @@ const User = require('./models/User');
 const authRoutes = require('./routes/authRoutes');
 const Course = require('./models/Course');
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+const rateLimit = require('express-rate-limit');
+const morgan = require('morgan');
+const logger = require('./utils/logger');
 
 const app = express();
 
@@ -91,6 +94,18 @@ app.post('/api/webhook', express.raw({ type: 'application/json' }), async (req, 
 
 app.use(express.json());
 app.use(cors());
+
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, 
+  max: 100, 
+  standardHeaders: true, 
+  legacyHeaders: false,
+  message: "Prea multe cereri de la acest IP, încearcă din nou peste 15 minute."
+});
+
+app.use(limiter);
+
+app.use(morgan('dev'));
 
 mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log('Conectat la MongoDB Atlas'))

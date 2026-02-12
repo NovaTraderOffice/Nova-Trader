@@ -16,6 +16,8 @@ import SocialProof from '@/components/SocialProof';
 import AdminRoute from '@/components/AdminRoute';
 
 // PAGES
+import ForgotPasswordPage from './pages/ForgotPasswordPage';
+import ResetPasswordPage from './pages/ResetPasswordPage';
 import ComingSoonPage from '@/pages/ComingSoonPage';
 import AdminDashboard from '@/pages/AdminDashboard';
 import SuccessPage from '@/pages/SuccessPage';
@@ -102,6 +104,8 @@ function App() {
             <Route path="/kurs/:courseId" element={<PrivateRoute><CoursePlayerPage /></PrivateRoute>} />
             <Route path="/basarili" element={<PrivateRoute><SuccessPage /></PrivateRoute>} />
             <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
+            <Route path="/uitat-parola" element={<ForgotPasswordPage />} />
+            <Route path="/resetare-parola/:token" element={<ResetPasswordPage />} />
 
             <Route path="*" element={<NotFoundPage />} />
           </Routes>

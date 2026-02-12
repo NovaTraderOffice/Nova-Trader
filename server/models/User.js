@@ -26,6 +26,9 @@ const UserSchema = new mongoose.Schema({
   isVerified: { type: Boolean, default: false },
   verificationCode: { type: String },
   telegramChatId: { type: String },
+
+  resetPasswordToken: String,
+  resetPasswordExpire: Date,
   
   createdAt: { type: Date, default: Date.now }
 });
