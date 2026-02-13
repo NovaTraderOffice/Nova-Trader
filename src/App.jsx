@@ -5,7 +5,7 @@ import { Loader2, Send } from 'lucide-react';
 // HOOKS
 import { useAuth } from '@/contexts/AuthContext';
 
-// IMPORTS STATICE (componente mici, critice)
+// IMPORTS STATICE 
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import ScrollToTop from '@/components/ScrollToTop';
@@ -16,7 +16,6 @@ import SocialProof from '@/components/SocialProof';
 import AdminRoute from '@/components/AdminRoute';
 
 // --- IMPORTURI LAZY (PAGINI) ---
-// Se încarcă doar când utilizatorul navighează către ele
 const ForgotPasswordPage = lazy(() => import('./pages/ForgotPasswordPage'));
 const ResetPasswordPage = lazy(() => import('./pages/ResetPasswordPage'));
 const ComingSoonPage = lazy(() => import('./pages/ComingSoonPage'));
@@ -37,7 +36,6 @@ const SubscriptionsPage = lazy(() => import('./pages/SubscriptionsPage'));
 const TradingToolsPage = lazy(() => import('./pages/TradingToolsPage'));
 const NotFoundPage = lazy(() => import('./pages/NotFoundPage'));
 
-// Loader-ul tău original
 const GlobalLoader = () => (
   <div className="fixed inset-0 bg-black/90 flex justify-center items-center z-[9999]">
     <div className="flex flex-col items-center gap-4">
@@ -64,12 +62,11 @@ const AuthRoute = ({ children }) => {
 function App() {
   const TELEGRAM_SUPPORT_USERNAME = "NovaTrader_SupportBot"; 
 
-  const isMaintenanceMode = import.meta.env.VITE_MAINTENANCE === 'false'; // Corectat: 'true' activeaza mentenanta
+  const isMaintenanceMode = import.meta.env.VITE_MAINTENANCE === 'true';
 
   if (isMaintenanceMode) {
     return (
       <div className="min-h-screen bg-[#050505] text-white">
-        {/* Folosim Suspense și aici pentru că ComingSoonPage e lazy */}
         <Suspense fallback={<GlobalLoader />}>
           <Routes>
             <Route path="*" element={<ComingSoonPage />} />
@@ -89,7 +86,6 @@ function App() {
         <Header />
    
         <main className="flex-grow">
-          {/* AICI ESTE SCHIMBAREA MAJORĂ: Suspense în jurul rutelor */}
           <Suspense fallback={<GlobalLoader />}>
             <Routes>
               <Route path="/" element={<HomePage />} />
@@ -121,7 +117,6 @@ function App() {
         
         <Footer />
         
-        {/* Butonul tău de Telegram păstrat intact */}
         <a 
           href={`https://t.me/${TELEGRAM_SUPPORT_USERNAME}`} 
           target="_blank" 
