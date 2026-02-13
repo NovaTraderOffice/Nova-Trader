@@ -5,10 +5,20 @@ const bcrypt = require('bcryptjs');
 const User = require('../models/User'); 
 const sendEmail = require('../utils/sendEmail');
 const authController = require('../controllers/authController');
+const rateLimit = require('express-rate-limit');
 
+const loginLimiter = rateLimit({
+    windowMs: 10 * 60 * 1000,
+    max: 5,
+    message: { message: "Çok fazla başarısız giriş denemesi. Lütfen 10 dakika sonra tekrar deneyin." },
+    standardHeaders: true,
+    legacyHeaders: false,
+});
 
 router.post('/register', authController.register);
-router.post('/login', authController.login);
+
+router.post('/login', loginLimiter, authController.login);
+
 router.put('/profile', authController.updateProfile);
 
 router.post('/forgot-password', async (req, res) => {

@@ -45,6 +45,7 @@
     "tailwind-merge": "^2.0.0",
     "tailwindcss-animate": "^1.0.7",
     "winston": "^3.11.0",
+    "xss-clean": "^0.1.4",
     "zod": "^4.3.6"
   },
   "devDependencies": {

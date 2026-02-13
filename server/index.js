@@ -12,6 +12,7 @@ const rateLimit = require('express-rate-limit');
 const morgan = require('morgan');
 const logger = require('./utils/logger');
 const mongoSanitize = require('express-mongo-sanitize');
+const xss = require('xss-clean');
 
 const app = express();
 
@@ -94,6 +95,7 @@ app.post('/api/webhook', express.raw({ type: 'application/json' }), async (req, 
 
 app.use(express.json());
 app.use(mongoSanitize());
+app.use(xss());
 app.use(cors());
 
 const limiter = rateLimit({
