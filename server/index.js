@@ -1,5 +1,6 @@
 require('dotenv').config();
 const express = require('express');
+const helmet = require('helmet'); // Importul e OK
 const mongoose = require('mongoose');
 const cors = require('cors');
 const TelegramBot = require('node-telegram-bot-api');
@@ -13,8 +14,15 @@ const logger = require('./utils/logger');
 
 const app = express();
 
+// Setări de bază
 app.set('trust proxy', 1);
 
+// --- 🛡️ ACTIVARE HELMET (Aici era lipsa) ---
+// Adaugă headere de securitate automate pentru toate rutele
+app.use(helmet()); 
+// -------------------------------------------
+
+// Webhook Stripe (Trebuie să fie înainte de express.json)
 app.post('/api/webhook', express.raw({ type: 'application/json' }), async (req, res) => {
   const sig = req.headers['stripe-signature'];
   let event;

@@ -1,11 +1,11 @@
-import React from 'react';
+import React, { Suspense, lazy } from 'react'; //
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { Loader2, Send } from 'lucide-react';
 
 // HOOKS
 import { useAuth } from '@/contexts/AuthContext';
 
-// IMPORTS
+// IMPORTS STATICE (componente mici, critice)
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import ScrollToTop from '@/components/ScrollToTop';
@@ -15,27 +15,29 @@ import ScrollProgress from '@/components/ScrollProgress';
 import SocialProof from '@/components/SocialProof';
 import AdminRoute from '@/components/AdminRoute';
 
-// PAGES
-import ForgotPasswordPage from './pages/ForgotPasswordPage';
-import ResetPasswordPage from './pages/ResetPasswordPage';
-import ComingSoonPage from '@/pages/ComingSoonPage';
-import AdminDashboard from '@/pages/AdminDashboard';
-import SuccessPage from '@/pages/SuccessPage';
-import CoursePlayerPage from '@/pages/CoursePlayerPage';
-import ProfilePage from '@/pages/ProfilePage';
-import HomePage from '@/pages/HomePage';
-import LoginPage from '@/pages/LoginPage';
-import RegisterPage from '@/pages/RegisterPage';
-import CoursesPage from '@/pages/CoursesPage';
-import MyProductsPage from '@/pages/MyProductsPage';
-import CheckoutPage from '@/pages/CheckoutPage';
-import AboutPage from '@/pages/AboutPage';
-import ReviewsPage from '@/pages/ReviewsPage';
-import ContactPage from '@/pages/ContactPage';
-import SubscriptionsPage from '@/pages/SubscriptionsPage';
-import TradingToolsPage from '@/pages/TradingToolsPage';
-import NotFoundPage from '@/pages/NotFoundPage';
+// --- IMPORTURI LAZY (PAGINI) ---
+// Se încarcă doar când utilizatorul navighează către ele
+const ForgotPasswordPage = lazy(() => import('./pages/ForgotPasswordPage'));
+const ResetPasswordPage = lazy(() => import('./pages/ResetPasswordPage'));
+const ComingSoonPage = lazy(() => import('./pages/ComingSoonPage'));
+const AdminDashboard = lazy(() => import('./pages/AdminDashboard'));
+const SuccessPage = lazy(() => import('./pages/SuccessPage'));
+const CoursePlayerPage = lazy(() => import('./pages/CoursePlayerPage'));
+const ProfilePage = lazy(() => import('./pages/ProfilePage'));
+const HomePage = lazy(() => import('./pages/HomePage'));
+const LoginPage = lazy(() => import('./pages/LoginPage'));
+const RegisterPage = lazy(() => import('./pages/RegisterPage'));
+const CoursesPage = lazy(() => import('./pages/CoursesPage'));
+const MyProductsPage = lazy(() => import('./pages/MyProductsPage'));
+const CheckoutPage = lazy(() => import('./pages/CheckoutPage'));
+const AboutPage = lazy(() => import('./pages/AboutPage'));
+const ReviewsPage = lazy(() => import('./pages/ReviewsPage'));
+const ContactPage = lazy(() => import('./pages/ContactPage'));
+const SubscriptionsPage = lazy(() => import('./pages/SubscriptionsPage'));
+const TradingToolsPage = lazy(() => import('./pages/TradingToolsPage'));
+const NotFoundPage = lazy(() => import('./pages/NotFoundPage'));
 
+// Loader-ul tău original
 const GlobalLoader = () => (
   <div className="fixed inset-0 bg-black/90 flex justify-center items-center z-[9999]">
     <div className="flex flex-col items-center gap-4">
@@ -62,14 +64,17 @@ const AuthRoute = ({ children }) => {
 function App() {
   const TELEGRAM_SUPPORT_USERNAME = "NovaTrader_SupportBot"; 
 
-  const isMaintenanceMode = import.meta.env.VITE_MAINTENANCE === 'false' || false;
+  const isMaintenanceMode = import.meta.env.VITE_MAINTENANCE === 'true'; // Corectat: 'true' activeaza mentenanta
 
   if (isMaintenanceMode) {
     return (
       <div className="min-h-screen bg-[#050505] text-white">
-        <Routes>
-          <Route path="*" element={<ComingSoonPage />} />
-        </Routes>
+        {/* Folosim Suspense și aici pentru că ComingSoonPage e lazy */}
+        <Suspense fallback={<GlobalLoader />}>
+          <Routes>
+            <Route path="*" element={<ComingSoonPage />} />
+          </Routes>
+        </Suspense>
       </div>
     );
   }
@@ -84,34 +89,39 @@ function App() {
         <Header />
    
         <main className="flex-grow">
-          <Routes>
-            <Route path="/" element={<HomePage />} />
-            <Route path="/kurslar" element={<CoursesPage />} />
-            <Route path="/abonelikler" element={<SubscriptionsPage />} />
-            <Route path="/hakkimizda" element={<AboutPage />} />
-            <Route path="/yorumlar" element={<ReviewsPage />} />
-            <Route path="/iletisim" element={<ContactPage />} />
-            <Route path="/ticaret-araclari" element={<TradingToolsPage />} />
+          {/* AICI ESTE SCHIMBAREA MAJORĂ: Suspense în jurul rutelor */}
+          <Suspense fallback={<GlobalLoader />}>
+            <Routes>
+              <Route path="/" element={<HomePage />} />
+              <Route path="/kurslar" element={<CoursesPage />} />
+              <Route path="/abonelikler" element={<SubscriptionsPage />} />
+              <Route path="/hakkimizda" element={<AboutPage />} />
+              <Route path="/yorumlar" element={<ReviewsPage />} />
+              <Route path="/iletisim" element={<ContactPage />} />
+              <Route path="/ticaret-araclari" element={<TradingToolsPage />} />
 
-            <Route path="/profil" element={<PrivateRoute><ProfilePage /></PrivateRoute>} />
-            
-            <Route path="/giris" element={<AuthRoute><LoginPage /></AuthRoute>} />
-            <Route path="/kayit" element={<AuthRoute><RegisterPage /></AuthRoute>} />
-            
-            <Route path="/urunlerim" element={<PrivateRoute><MyProductsPage /></PrivateRoute>} />
-            <Route path="/odeme/:courseId" element={<PrivateRoute><CheckoutPage /></PrivateRoute>} />
+              <Route path="/profil" element={<PrivateRoute><ProfilePage /></PrivateRoute>} />
+              
+              <Route path="/giris" element={<AuthRoute><LoginPage /></AuthRoute>} />
+              <Route path="/kayit" element={<AuthRoute><RegisterPage /></AuthRoute>} />
+              
+              <Route path="/urunlerim" element={<PrivateRoute><MyProductsPage /></PrivateRoute>} />
+              <Route path="/odeme/:courseId" element={<PrivateRoute><CheckoutPage /></PrivateRoute>} />
 
-            <Route path="/kurs/:courseId" element={<PrivateRoute><CoursePlayerPage /></PrivateRoute>} />
-            <Route path="/basarili" element={<PrivateRoute><SuccessPage /></PrivateRoute>} />
-            <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
-            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-            <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
+              <Route path="/kurs/:courseId" element={<PrivateRoute><CoursePlayerPage /></PrivateRoute>} />
+              <Route path="/basarili" element={<PrivateRoute><SuccessPage /></PrivateRoute>} />
+              <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
+              <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+              <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
 
-            <Route path="*" element={<NotFoundPage />} />
-          </Routes>
+              <Route path="*" element={<NotFoundPage />} />
+            </Routes>
+          </Suspense>
         </main>
         
         <Footer />
+        
+        {/* Butonul tău de Telegram păstrat intact */}
         <a 
           href={`https://t.me/${TELEGRAM_SUPPORT_USERNAME}`} 
           target="_blank" 
