@@ -1,6 +1,6 @@
 require('dotenv').config();
 const express = require('express');
-const helmet = require('helmet'); // Importul e OK
+const helmet = require('helmet');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const TelegramBot = require('node-telegram-bot-api');
@@ -11,18 +11,13 @@ const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const rateLimit = require('express-rate-limit');
 const morgan = require('morgan');
 const logger = require('./utils/logger');
+const mongoSanitize = require('express-mongo-sanitize');
 
 const app = express();
 
-// Setări de bază
 app.set('trust proxy', 1);
-
-// --- 🛡️ ACTIVARE HELMET (Aici era lipsa) ---
-// Adaugă headere de securitate automate pentru toate rutele
 app.use(helmet()); 
-// -------------------------------------------
 
-// Webhook Stripe (Trebuie să fie înainte de express.json)
 app.post('/api/webhook', express.raw({ type: 'application/json' }), async (req, res) => {
   const sig = req.headers['stripe-signature'];
   let event;
@@ -40,24 +35,20 @@ app.post('/api/webhook', express.raw({ type: 'application/json' }), async (req, 
     const stripeCustomerId = subscription.customer;
     const status = subscription.status;
 
-    // Extragem datele de anulare
     const isCanceledAtPeriodEnd = subscription.cancel_at_period_end === true;
     const hasCancelAt = subscription.cancel_at !== null;
 
     console.log(`🔍 Analizăm subscriptia pt ${stripeCustomerId}. Status Stripe: ${status} | Cancelat din portal: ${isCanceledAtPeriodEnd || hasCancelAt}`);
 
-    // Statusuri care înseamnă clar că a expirat / nu e plătit
     const inactiveStatuses = ['canceled', 'unpaid', 'past_due', 'incomplete_expired'];
     
     let newStatus = 'active';
     let endDate = null;
 
-    // Stabilim noul status intern și data expirării (dacă există)
     if (inactiveStatuses.includes(status)) {
       newStatus = 'inactive';
     } else if (isCanceledAtPeriodEnd || hasCancelAt) {
       newStatus = 'pending_cancel';
-      // Convertim secundele de la Stripe în milisecunde pentru Date()
       endDate = new Date((subscription.cancel_at || subscription.current_period_end) * 1000); 
     }
 
@@ -66,12 +57,11 @@ app.post('/api/webhook', express.raw({ type: 'application/json' }), async (req, 
 
       if (user) {
         user.subscriptionStatus = newStatus;
-        user.subscriptionEndDate = endDate; // Salvăm data în DB
+        user.subscriptionEndDate = endDate;
         await user.save();
         
         console.log(`✅ Status actualizat în DB pentru ${user.email}: ${user.subscriptionStatus}`);
         
-        // Dăm afară de pe grup DOAR dacă a expirat de tot ('inactive')
         if (newStatus === 'inactive' && user.telegramChatId) {
             console.log(`🚨 Abonament expirat pentru ${user.email}. Îl scoatem din grup...`);
             
@@ -103,6 +93,7 @@ app.post('/api/webhook', express.raw({ type: 'application/json' }), async (req, 
 });
 
 app.use(express.json());
+app.use(mongoSanitize());
 app.use(cors());
 
 const limiter = rateLimit({
@@ -137,7 +128,6 @@ if (process.env.TELEGRAM_BOT_TOKEN && process.env.ENABLE_BOT === 'true') {
         return;
     }
 
-    // 2. LOGICA DE VERIFICARE NUMĂR TELEFON
     if (msg.contact) {
       console.log(`Primit contact de la ${msg.from.first_name}: ${msg.contact.phone_number}`);
       if (msg.contact.user_id !== msg.from.id) {
@@ -191,7 +181,6 @@ if (process.env.TELEGRAM_BOT_TOKEN && process.env.ENABLE_BOT === 'true') {
       }
 
       try {
-        // Căutăm userul care are acest cod generat în site
         const user = await User.findOne({ verificationCode: text });
 
         if (user) {
@@ -200,7 +189,6 @@ if (process.env.TELEGRAM_BOT_TOKEN && process.env.ENABLE_BOT === 'true') {
           if (user.isVerified) {
              bot.sendMessage(chatId, "Hesabınız zaten doğrulandı!");
           } else {
-             // Salvăm ChatID-ul temporar ca să știm cui îi cerem telefonul
              user.telegramChatId = chatId.toString();
              await user.save();
              console.log(`🔗 ChatID ${chatId} legat de userul ${user.email}`);
@@ -282,7 +270,6 @@ app.post('/api/verify-payment', async (req, res) => {
     const session = await stripe.checkout.sessions.retrieve(sessionId);
 
     if (session.payment_status === 'paid') {
-      // Căutăm userul
       const User = require('./models/User'); 
       const user = await User.findById(userId || session.client_reference_id);
 
@@ -299,13 +286,11 @@ app.post('/api/verify-payment', async (req, res) => {
                 user.subscriptionStatus = 'active';
                 user.stripeCustomerId = session.customer;
 
-                // Calculăm data cu protecție (Fallback)
                 let expiryDate;
                 if (subscription && subscription.current_period_end) {
                     expiryDate = new Date(subscription.current_period_end * 1000);
                 }
 
-                // Dacă data e invalidă (Invalid Date) sau null, punem manual 30 de zile
                 if (!expiryDate || isNaN(expiryDate.getTime())) {
                     console.log("⚠️ Data Stripe invalidă, folosim fallback 30 zile.");
                     const now = new Date();
@@ -316,7 +301,6 @@ app.post('/api/verify-payment', async (req, res) => {
                 user.subscriptionEndDate = expiryDate;
                 console.log(`✅ Abonament setat până la: ${expiryDate}`);
 
-                // Trimitem link Telegram dacă avem datele
                 if (process.env.TELEGRAM_BOT_TOKEN && process.env.TELEGRAM_GROUP_ID && user.telegramChatId) {
                     try {
                         const bot = new TelegramBot(process.env.TELEGRAM_BOT_TOKEN);
@@ -329,7 +313,6 @@ app.post('/api/verify-payment', async (req, res) => {
 
             } catch (subErr) {
                 console.error("❌ Eroare la procesare abonament Stripe:", subErr.message);
-                // Fallback critic: Activăm oricum accesul dacă plata e 'paid'
                 user.subscriptionStatus = 'active';
                 user.stripeCustomerId = session.customer;
                 const fallbackDate = new Date();
@@ -338,7 +321,6 @@ app.post('/api/verify-payment', async (req, res) => {
             }
         }
       } 
-      // LOGICA CURS
       else if (courseId) {
         if (!user.purchasedCourses.includes(courseId)) {
           user.purchasedCourses.push(courseId);
@@ -346,7 +328,6 @@ app.post('/api/verify-payment', async (req, res) => {
       }
 
       await user.save();
-      // Trimitem userul actualizat înapoi
       return res.json({ success: true, updatedUser: user });
     }
 

@@ -1,125 +1,163 @@
 import React, { useState, useEffect } from 'react';
-import { Helmet } from 'react-helmet';
-import { motion } from 'framer-motion';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
+import api from '@/lib/api';
 import { Button } from '@/components/ui/Button';
-import { Clock, Star, Zap, Award, Loader2 } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
-import { API_URL } from '@/lib/api';
+import { Lock, PlayCircle } from 'lucide-react';
+import { Skeleton } from "@/components/ui/Skeleton"; // Import Skeleton
+
+// --- SKELETON PERSONALIZAT (Identic cu Cardul tău) ---
+const CourseSkeleton = () => (
+  <div className="bg-[#1a1a1a] rounded-xl overflow-hidden border border-gray-800 shadow-lg h-full flex flex-col">
+    {/* Imagine Skeleton */}
+    <Skeleton className="h-48 w-full bg-gray-800" />
+    
+    <div className="p-6 flex flex-col flex-grow space-y-4">
+      {/* Titlu Skeleton */}
+      <Skeleton className="h-8 w-3/4 bg-gray-700" />
+      
+      {/* Descriere Skeleton (3 linii) */}
+      <div className="space-y-2">
+        <Skeleton className="h-4 w-full bg-gray-800" />
+        <Skeleton className="h-4 w-5/6 bg-gray-800" />
+        <Skeleton className="h-4 w-4/6 bg-gray-800" />
+      </div>
+
+      {/* Footer cu Preț și Buton */}
+      <div className="mt-auto pt-4 border-t border-gray-800 flex items-center justify-between">
+        <Skeleton className="h-8 w-20 bg-gray-800" />
+        <Skeleton className="h-10 w-32 rounded-lg bg-gray-700" />
+      </div>
+    </div>
+  </div>
+);
 
 const CoursesPage = () => {
-  const { toast } = useToast();
-  const { user } = useAuth();
-  const navigate = useNavigate();
-  const location = useLocation();
-  
   const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
+  const navigate = useNavigate();
+  const { user } = useAuth();
 
   useEffect(() => {
     const fetchCourses = async () => {
       try {
-        const response = await fetch(`${API_URL}/courses`);
-        const data = await response.json();
-        setCourses(data);
+        // Poți lăsa timeout-ul mic dacă vrei să vezi efectul, 
+        // altfel scoate-l pentru viteză maximă în producție
+        // await new Promise(resolve => setTimeout(resolve, 800));
+
+        const response = await api.get('/courses');
+        setCourses(response.data);
       } catch (error) {
-        console.error("Eroare:", error);
+        toast({
+          title: "Hata",
+          description: "Kurslar yüklenemedi.",
+          variant: "destructive",
+        });
       } finally {
         setLoading(false);
       }
     };
-    fetchCourses();
-  }, []);
 
-const handleBuyClick = (course) => {
-    if (!user) {
-      toast({ title: "Giriş Yapmalısınız", description: "Kursu satın almak için lütfen giriş yapın." });
-      navigate('/giris', { state: { from: location } });
-      return;
+    fetchCourses();
+  }, [toast]);
+
+  const handleCourseClick = (courseId, isPurchased) => {
+    if (isPurchased) {
+      navigate(`/kurs/${courseId}`);
+    } else {
+      navigate(`/odeme/${courseId}`);
     }
-    
-    navigate(`/odeme/${course._id}`); 
   };
 
-  if (loading) return (
-    <div className="min-h-screen flex items-center justify-center bg-[#0f0f0f] text-yellow-500">
-      <Loader2 className="w-12 h-12 animate-spin" />
-    </div>
-  );
-
   return (
-    <>
-      <Helmet><title>Kurslar - NovaTrader</title></Helmet>
-      <div className="bg-[#0f0f0f] text-white min-h-screen py-20">
-        <div className="container mx-auto px-4">
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center mb-12">
-            <h1 className="text-4xl md:text-5xl font-bold mb-4"><span className="gold-text">Eğitim Kursları</span></h1>
-          </motion.div>
+    <div className="min-h-screen bg-[#0f0f0f] py-20 px-4 md:px-8">
+      <div className="max-w-7xl mx-auto">
+        <div className="text-center mb-16">
+          <h1 className="text-4xl md:text-5xl font-bold mb-6 bg-gradient-to-r from-yellow-400 to-yellow-600 bg-clip-text text-transparent">
+            Eğitim Programlarımız
+          </h1>
+          <p className="text-gray-400 text-lg max-w-2xl mx-auto">
+            Finansal özgürlüğe giden yolda size rehberlik edecek kapsamlı eğitimler.
+          </p>
+        </div>
 
+        {loading ? (
+          // --- AICI ESTE SCHIMBAREA: Skeleton Grid ---
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {courses.map((course, index) => (
-              <CourseCard key={course._id} course={course} index={index} handleBuyClick={handleBuyClick} />
+            {[1, 2, 3, 4, 5, 6].map((i) => (
+              <CourseSkeleton key={i} />
             ))}
           </div>
-        </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {courses.map((course) => {
+              const isPurchased = user?.purchasedCourses?.includes(course._id) || user?.role === 'admin';
+              
+              return (
+                <div 
+                  key={course._id} 
+                  className="group bg-[#1a1a1a] rounded-xl overflow-hidden border border-gray-800 hover:border-yellow-500/50 transition-all duration-300 hover:shadow-[0_0_30px_rgba(234,179,8,0.1)] flex flex-col h-full"
+                >
+                  {/* Imagine */}
+                  <div className="relative h-48 overflow-hidden">
+                    <img 
+                      src={course.thumbnail || "/api/placeholder/400/320"} 
+                      alt={course.title}
+                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#1a1a1a] to-transparent opacity-60" />
+                    
+                    {/* Badge VIP/Free */}
+                    <div className="absolute top-4 right-4">
+                      <span className="bg-yellow-500 text-black px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider">
+                        {course.price > 0 ? 'PREMIUM' : 'GRATUIT'}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Continut */}
+                  <div className="p-6 flex flex-col flex-grow">
+                    <h3 className="text-xl font-bold text-white mb-2 group-hover:text-yellow-400 transition-colors">
+                      {course.title}
+                    </h3>
+                    <p className="text-gray-400 text-sm mb-6 line-clamp-2 flex-grow">
+                      {course.description}
+                    </p>
+
+                    <div className="mt-auto pt-4 border-t border-gray-800 flex items-center justify-between">
+                      <div className="text-2xl font-bold text-white">
+                        {course.price === 0 ? "Ücretsiz" : `€${course.price}`}
+                      </div>
+                      
+                      <Button 
+                        onClick={() => handleCourseClick(course._id, isPurchased)}
+                        className={`gap-2 ${isPurchased 
+                          ? 'bg-green-600 hover:bg-green-700 text-white' 
+                          : 'bg-yellow-500 hover:bg-yellow-600 text-black'}`}
+                      >
+                        {isPurchased ? (
+                          <>
+                            <PlayCircle className="w-4 h-4" />
+                            İzle
+                          </>
+                        ) : (
+                          <>
+                            <Lock className="w-4 h-4" />
+                            Satın Al
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
       </div>
-    </>
-  );
-};
-
-const CourseCard = ({ course, index, handleBuyClick }) => {
-  const isComingSoon = !course.isAvailable;
-
-  return (
-    <motion.div 
-      initial={{ opacity: 0, y: 20 }} 
-      animate={{ opacity: 1, y: 0 }} 
-      transition={{ duration: 0.5, delay: index * 0.1 }} 
-      className={`premium-card overflow-hidden flex flex-col transition-all duration-300 relative ${
-        isComingSoon ? 'opacity-60 grayscale cursor-not-allowed border-gray-800' : 'hover:scale-105 border-yellow-600/20'
-      }`}
-    >
-      {/* Insigna de YAKINDA (Coming Soon) */}
-      {isComingSoon && (
-        <div className="absolute top-4 left-4 z-10 bg-black/90 text-yellow-500 text-xs font-bold px-3 py-1.5 rounded border border-yellow-500 uppercase tracking-wider shadow-lg">
-          Yakında
-        </div>
-      )}
-
-      <img className="w-full h-48 object-cover" alt={course.title} src={course.thumbnail} />
-      
-      <div className="p-6 flex flex-col flex-grow relative">
-        <h3 className={`text-xl font-bold mb-2 ${isComingSoon ? 'text-gray-400' : 'text-yellow-500'}`}>
-          {course.title}
-        </h3>
-        <p className={`text-sm mb-4 flex-grow ${isComingSoon ? 'text-gray-500' : 'text-gray-400'}`}>
-          {course.description}
-        </p>
-        
-        <div className={`flex items-center space-x-4 mb-4 text-sm ${isComingSoon ? 'text-gray-600' : 'text-gray-400'}`}>
-          <div className="flex items-center"><Clock className="w-4 h-4 mr-1" />{course.lessons?.length || 0} Ders</div>
-          <div className="flex items-center"><Star className={`w-4 h-4 mr-1 ${isComingSoon ? 'text-gray-600' : 'text-yellow-500'}`} />5.0</div>
-        </div>
-        
-        <div className="mt-auto">
-          <span className={`text-3xl font-bold block mb-4 ${isComingSoon ? 'text-gray-500' : 'gold-text'}`}>
-            {course.price}€
-          </span>
-          <Button 
-            disabled={isComingSoon}
-            onClick={() => !isComingSoon && handleBuyClick(course)} 
-            className={`w-full font-semibold transition-all ${
-              isComingSoon 
-                ? 'bg-gray-800 text-gray-500 border border-gray-700 hover:bg-gray-800 cursor-not-allowed' 
-                : 'gold-gradient text-black hover:opacity-90'
-            }`}
-          >
-            {isComingSoon ? 'Yakında Gelecek' : 'Satın Al'}
-          </Button>
-        </div>
-      </div>
-    </motion.div>
+    </div>
   );
 };
 
