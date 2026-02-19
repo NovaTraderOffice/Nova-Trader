@@ -77,7 +77,7 @@ const SubscriptionsPage = () => {
               <div className="text-center mb-8 pt-4">
                 <h2 className="text-2xl font-bold mb-2">Aylık VIP Erişim</h2>
                 <div className="flex items-center justify-center space-x-1">
-                  <span className="text-5xl font-black text-white">€80</span>
+                  <span className="text-5xl font-black text-white">TRY7670</span>
                   <span className="text-gray-500 font-bold mt-4">/ay</span>
                 </div>
                 <p className="text-sm text-gray-500 mt-3 font-medium">İstediğiniz zaman iptal edebilirsiniz.</p>
