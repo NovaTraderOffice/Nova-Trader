@@ -107,7 +107,7 @@ const handleCheckout = async () => {
               </p>
             </div>
             <div className="font-bold text-lg text-yellow-500">
-              {course.price}€
+              {course.price}TRY
             </div>
           </div>
 
