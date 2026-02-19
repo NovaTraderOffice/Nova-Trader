@@ -440,7 +440,7 @@ app.post('/api/subscriptions/create-checkout-session', async (req, res) => {
       mode: 'subscription',
       line_items: [
         {
-          price: 'price_1Szdbg3YvNCbZO3PvG7r4OpB', 
+          price: 'price_1T2b7u3YvNCbZO3Pf7oBgmou', 
           quantity: 1,
         },
       ],
