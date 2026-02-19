@@ -8,10 +8,9 @@ const AdminDashboard = () => {
   const [courses, setCourses] = useState([]);
   const [usersList, setUsersList] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('courses'); // 'courses' sau 'users'
+  const [activeTab, setActiveTab] = useState('courses');
   const [editingCourse, setEditingCourse] = useState(null);
 
-  // 1. Tragem datele de la server (Cursuri + Utilizatori)
   const fetchData = async () => {
     setLoading(true);
     try {
@@ -35,7 +34,6 @@ const AdminDashboard = () => {
     fetchData();
   }, []);
 
-  // 2. Logica pentru Cursuri
   const handleDelete = async (id) => {
     if (!window.confirm("Sigur vrei să ștergi acest curs? Acțiunea este ireversibilă!")) return;
     try {
@@ -61,7 +59,6 @@ const AdminDashboard = () => {
     } catch (error) { console.error("Eroare la salvare:", error); }
   };
 
-  // 3. Logica pentru Utilizatori (Schimbare Rol)
   const toggleRole = async (userId, currentRole) => {
     const newRole = currentRole === 'admin' ? 'user' : 'admin';
     if (!window.confirm(`Vrei să schimbi rolul acestui utilizator în ${newRole.toUpperCase()}?`)) return;
@@ -72,7 +69,7 @@ const AdminDashboard = () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ role: newRole })
       });
-      fetchData(); // Reîncărcăm lista pentru a vedea modificarea
+      fetchData();
     } catch (error) {
       console.error("Eroare la schimbarea rolului:", error);
     }
@@ -86,7 +83,6 @@ const AdminDashboard = () => {
       <div className="min-h-screen bg-[#0f0f0f] text-white pt-24 px-4 pb-20">
         <div className="container mx-auto">
           
-          {/* Header */}
           <div className="flex justify-between items-center mb-8 border-b border-gray-800 pb-4">
             <h1 className="text-3xl font-bold gold-text">Yönetici Paneli (Admin)</h1>
             {activeTab === 'courses' && (
@@ -99,7 +95,6 @@ const AdminDashboard = () => {
             )}
           </div>
 
-          {/* Navigare Tab-uri */}
           <div className="flex space-x-4 mb-8">
             <button 
               onClick={() => setActiveTab('courses')}
@@ -115,18 +110,14 @@ const AdminDashboard = () => {
             </button>
           </div>
 
-          {/* Conținut Tab-uri */}
           {activeTab === 'courses' ? (
-            /* TAB CURSURI */
             editingCourse ? (
-              // FORMULAR ADAUGARE/EDITARE CURS
               <div className="bg-[#121212] border border-yellow-600/30 p-6 rounded-xl mb-8">
                 <div className="flex justify-between mb-4">
                   <h2 className="text-xl font-bold text-yellow-500">{editingCourse._id ? 'Kursu Düzenle' : 'Yeni Kurs'}</h2>
                   <button onClick={() => setEditingCourse(null)} className="text-gray-400 hover:text-white"><X /></button>
                 </div>
                 <form onSubmit={handleSave} className="space-y-4">
-                  {/* ... Câmpurile tale de curs rămân la fel ... */}
                   <div><label className="block text-gray-400 text-sm mb-1">Titlu Curs</label><input type="text" value={editingCourse.title} onChange={e => setEditingCourse({...editingCourse, title: e.target.value})} required className="w-full bg-[#1a1a1a] border border-gray-700 rounded p-2 text-white focus:border-yellow-500" /></div>
                   <div className="grid grid-cols-2 gap-4">
                     <div><label className="block text-gray-400 text-sm mb-1">Preț (€)</label><input type="number" value={editingCourse.price} onChange={e => setEditingCourse({...editingCourse, price: Number(e.target.value)})} className="w-full bg-[#1a1a1a] border border-gray-700 rounded p-2 text-white" /></div>
@@ -134,14 +125,93 @@ const AdminDashboard = () => {
                   </div>
                   <div><label className="block text-gray-400 text-sm mb-1">Descriere</label><textarea value={editingCourse.description} onChange={e => setEditingCourse({...editingCourse, description: e.target.value})} className="w-full bg-[#1a1a1a] border border-gray-700 rounded p-2 text-white h-20" /></div>
                   <label className="flex items-center space-x-2 cursor-pointer"><input type="checkbox" checked={editingCourse.isAvailable} onChange={e => setEditingCourse({...editingCourse, isAvailable: e.target.checked})} className="w-4 h-4 accent-yellow-500" /><span className="text-gray-300">Cursul este activ</span></label>
-                  <div className="flex justify-end space-x-4 pt-4 border-t border-gray-800">
+                  
+                  <div className="mt-8 border-t border-gray-800 pt-6">
+                    <div className="flex justify-between items-center mb-4">
+                      <h3 className="text-lg font-bold text-white">Dersler (Lecții Video)</h3>
+                      <Button 
+                        type="button" 
+                        onClick={() => {
+                          const currentLessons = editingCourse.lessons || [];
+                          setEditingCourse({
+                            ...editingCourse,
+                            lessons: [...currentLessons, { title: '', videoUrl: '', duration: '' }]
+                          });
+                        }}
+                        className="bg-green-600 hover:bg-green-700 text-white px-3 py-1 h-8 text-sm flex items-center"
+                      >
+                        <Plus className="w-4 h-4 mr-1" /> Ders Ekle
+                      </Button>
+                    </div>
+
+                    <div className="space-y-3">
+                      {(!editingCourse.lessons || editingCourse.lessons.length === 0) ? (
+                        <p className="text-gray-500 text-sm italic">Henüz ders eklenmemiş. (Nu a fost adăugată nicio lecție)</p>
+                      ) : (
+                        editingCourse.lessons.map((lesson, index) => (
+                          <div key={index} className="flex gap-2 items-start bg-[#1a1a1a] p-3 rounded-lg border border-gray-700">
+                            <div className="flex-grow space-y-2">
+                              <input 
+                                type="text" 
+                                placeholder="Ders Başlığı (ex: Bölüm 1: Borsa Nedir?)" 
+                                value={lesson.title} 
+                                onChange={(e) => {
+                                  const newLessons = [...editingCourse.lessons];
+                                  newLessons[index].title = e.target.value;
+                                  setEditingCourse({...editingCourse, lessons: newLessons});
+                                }} 
+                                className="w-full bg-[#121212] border border-gray-600 rounded p-2 text-white text-sm focus:border-yellow-500" 
+                                required 
+                              />
+                              <div className="flex gap-2">
+                                <input 
+                                  type="text" 
+                                  placeholder="Vimeo URL (ex: https://player.vimeo.com/video/1163897386)" 
+                                  value={lesson.videoUrl} 
+                                  onChange={(e) => {
+                                    const newLessons = [...editingCourse.lessons];
+                                    newLessons[index].videoUrl = e.target.value;
+                                    setEditingCourse({...editingCourse, lessons: newLessons});
+                                  }} 
+                                  className="flex-grow bg-[#121212] border border-gray-600 rounded p-2 text-white text-sm focus:border-yellow-500" 
+                                  required 
+                                />
+                                <input 
+                                  type="text" 
+                                  placeholder="Süre (ex: 03:47)" 
+                                  value={lesson.duration} 
+                                  onChange={(e) => {
+                                    const newLessons = [...editingCourse.lessons];
+                                    newLessons[index].duration = e.target.value;
+                                    setEditingCourse({...editingCourse, lessons: newLessons});
+                                  }} 
+                                  className="w-32 bg-[#121212] border border-gray-600 rounded p-2 text-white text-sm focus:border-yellow-500" 
+                                />
+                              </div>
+                            </div>
+                            <Button 
+                              type="button" 
+                              onClick={() => {
+                                const newLessons = editingCourse.lessons.filter((_, i) => i !== index);
+                                setEditingCourse({...editingCourse, lessons: newLessons});
+                              }}
+                              className="bg-red-600/20 text-red-500 hover:bg-red-600 hover:text-white p-2 h-auto"
+                            >
+                              <Trash2 className="w-5 h-5" />
+                            </Button>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="flex justify-end space-x-4 pt-6 mt-4 border-t border-gray-800">
                     <Button type="button" onClick={() => setEditingCourse(null)} variant="outline" className="border-gray-600 text-gray-300">İptal</Button>
                     <Button type="submit" className="gold-gradient text-black font-bold"><Save className="w-4 h-4 mr-2" /> Kaydet</Button>
                   </div>
                 </form>
               </div>
             ) : (
-              // LISTA CURSURI
               <div className="grid gap-4">
                 {courses.map(course => (
                   <div key={course._id} className="bg-[#121212] border border-gray-800 rounded-lg p-4 flex items-center justify-between hover:border-yellow-600/30 transition-colors">
@@ -149,7 +219,9 @@ const AdminDashboard = () => {
                       <img src={course.thumbnail} alt="" className="w-16 h-12 object-cover rounded border border-gray-700" />
                       <div>
                         <h3 className="font-bold text-white">{course.title}</h3>
-                        <p className="text-sm text-gray-500">{course.price}€ • {course.isAvailable ? <span className="text-green-500">Activ</span> : <span className="text-orange-500">Inactiv</span>}</p>
+                        <p className="text-sm text-gray-500">
+                          {course.price}€ • {course.isAvailable ? <span className="text-green-500">Activ</span> : <span className="text-orange-500">Inactiv</span>} • {course.lessons?.length || 0} Ders
+                        </p>
                       </div>
                     </div>
                     <div className="flex space-x-2">
@@ -161,7 +233,6 @@ const AdminDashboard = () => {
               </div>
             )
           ) : (
-            /* TAB UTILIZATORI */
             <div className="bg-[#121212] border border-gray-800 rounded-xl overflow-hidden">
               <table className="w-full text-left text-sm">
                 <thead className="bg-black/40 border-b border-gray-800 text-gray-400">
