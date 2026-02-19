@@ -231,7 +231,7 @@ app.post('/api/create-checkout-session', async (req, res) => {
       line_items: [
         {
           price_data: {
-            currency: 'eur',
+            currency: 'TRY',
             product_data: {
               name: title,
             },

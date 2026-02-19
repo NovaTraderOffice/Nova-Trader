@@ -129,7 +129,7 @@ const AdminDashboard = () => {
                   {/* Câmpurile standard */}
                   <div><label className="block text-gray-400 text-sm mb-1">Titlu Curs</label><input type="text" value={editingCourse.title} onChange={e => setEditingCourse({...editingCourse, title: e.target.value})} required className="w-full bg-[#1a1a1a] border border-gray-700 rounded p-2 text-white focus:border-yellow-500" /></div>
                   <div className="grid grid-cols-2 gap-4">
-                    <div><label className="block text-gray-400 text-sm mb-1">Preț (€)</label><input type="number" value={editingCourse.price} onChange={e => setEditingCourse({...editingCourse, price: Number(e.target.value)})} className="w-full bg-[#1a1a1a] border border-gray-700 rounded p-2 text-white" /></div>
+                    <div><label className="block text-gray-400 text-sm mb-1">Preț (TL)</label><input type="number" value={editingCourse.price} onChange={e => setEditingCourse({...editingCourse, price: Number(e.target.value)})} className="w-full bg-[#1a1a1a] border border-gray-700 rounded p-2 text-white" /></div>
                     <div><label className="block text-gray-400 text-sm mb-1">Link Poză</label><input type="text" value={editingCourse.thumbnail} onChange={e => setEditingCourse({...editingCourse, thumbnail: e.target.value})} className="w-full bg-[#1a1a1a] border border-gray-700 rounded p-2 text-white" /></div>
                   </div>
                   <div><label className="block text-gray-400 text-sm mb-1">Descriere</label><textarea value={editingCourse.description} onChange={e => setEditingCourse({...editingCourse, description: e.target.value})} className="w-full bg-[#1a1a1a] border border-gray-700 rounded p-2 text-white h-20" /></div>
