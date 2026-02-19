@@ -114,7 +114,7 @@ const handleCheckout = async () => {
           <div className="border-t border-gray-800 pt-4 mb-6">
             <div className="flex justify-between items-center font-bold text-lg">
               <span>Toplam Tutar</span>
-              <span className="text-yellow-500 text-2xl">{course.price}€</span>
+              <span className="text-yellow-500 text-2xl">{course.price}TRY</span>
             </div>
           </div>
 

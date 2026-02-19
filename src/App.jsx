@@ -12,7 +12,6 @@ import ScrollToTop from '@/components/ScrollToTop';
 import PrivacyNotice from '@/components/PrivacyNotice';
 import TickerTape from '@/components/TickerTape';
 import ScrollProgress from '@/components/ScrollProgress';
-import SocialProof from '@/components/SocialProof';
 import AdminRoute from '@/components/AdminRoute';
 
 // --- IMPORTURI LAZY (PAGINI) ---
@@ -130,7 +129,6 @@ function App() {
           </span>
         </a>
        
-        <SocialProof />
         <PrivacyNotice />
       </div>
     </>

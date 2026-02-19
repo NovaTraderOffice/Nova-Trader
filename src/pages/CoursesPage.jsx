@@ -104,7 +104,7 @@ const CourseCard = ({ course, index, handleBuyClick }) => {
         
         <div className="mt-auto">
           <span className={`text-3xl font-bold block mb-4 ${isComingSoon ? 'text-gray-500' : 'gold-text'}`}>
-            {course.price}TL
+            {course.price}TRY
           </span>
           <Button 
             disabled={isComingSoon}
