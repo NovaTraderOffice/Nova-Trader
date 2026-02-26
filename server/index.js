@@ -259,7 +259,6 @@ app.post('/api/create-checkout-session', async (req, res) => {
   }
 });
 
-// --- RUTA MODIFICATĂ CU PROTECȚIE LA DATE ---
 app.post('/api/verify-payment', async (req, res) => {
   try {
     const { sessionId, userId, courseId } = req.body;
@@ -280,47 +279,42 @@ app.post('/api/verify-payment', async (req, res) => {
         return res.status(404).json({ success: false, error: "Utilizator negăsit" });
       }
 
-      // LOGICA ABONAMENT (cu protecție la dată)
-      if (session.mode === 'subscription') {
-        if (session.subscription) {
-            try {
-                const subscription = await stripe.subscriptions.retrieve(session.subscription);
-                user.subscriptionStatus = 'active';
-                user.stripeCustomerId = session.customer;
+      if (session.mode === 'subscription' && session.subscription) {
+        try {
+            const subscription = await stripe.subscriptions.retrieve(session.subscription);
+            user.subscriptionStatus = 'active';
+            user.stripeCustomerId = session.customer;
 
-                let expiryDate;
-                if (subscription && subscription.current_period_end) {
-                    expiryDate = new Date(subscription.current_period_end * 1000);
-                }
-
-                if (!expiryDate || isNaN(expiryDate.getTime())) {
-                    console.log("⚠️ Data Stripe invalidă, folosim fallback 30 zile.");
-                    const now = new Date();
-                    now.setDate(now.getDate() + 30);
-                    expiryDate = now;
-                }
-
-                user.subscriptionEndDate = expiryDate;
-                console.log(`✅ Abonament setat până la: ${expiryDate}`);
-
-                if (process.env.TELEGRAM_BOT_TOKEN && process.env.TELEGRAM_GROUP_ID && user.telegramChatId) {
-                    try {
-                        const bot = new TelegramBot(process.env.TELEGRAM_BOT_TOKEN);
-                        const inviteLink = await bot.createChatInviteLink(process.env.TELEGRAM_GROUP_ID, { member_limit: 1 });
-                        await bot.sendMessage(user.telegramChatId, `🎉 VIP link: ${inviteLink.invite_link}`);
-                    } catch (tgErr) {
-                        console.error("⚠️ Eroare trimitere link TG:", tgErr.message);
-                    }
-                }
-
-            } catch (subErr) {
-                console.error("❌ Eroare la procesare abonament Stripe:", subErr.message);
-                user.subscriptionStatus = 'active';
-                user.stripeCustomerId = session.customer;
-                const fallbackDate = new Date();
-                fallbackDate.setDate(fallbackDate.getDate() + 30);
-                user.subscriptionEndDate = fallbackDate;
+            let expiryDate;
+            if (subscription && subscription.current_period_end) {
+                expiryDate = new Date(subscription.current_period_end * 1000);
+            } else {
+                const now = new Date();
+                now.setDate(now.getDate() + 30);
+                expiryDate = now;
             }
+            user.subscriptionEndDate = expiryDate;
+            console.log(`✅ Abonament activat pentru ${user.email}`);
+
+            if (process.env.TELEGRAM_BOT_TOKEN && process.env.TELEGRAM_GROUP_ID && user.telegramChatId) {
+                try {
+                    const bot = new TelegramBot(process.env.TELEGRAM_BOT_TOKEN);
+                    
+                    const inviteLink = await bot.createChatInviteLink(process.env.TELEGRAM_GROUP_ID, { member_limit: 1 });
+                    
+                    await bot.sendMessage(user.telegramChatId, `🎉 Ödeme başarıyla alındı! Aboneliğiniz aktif.`);
+                    await bot.sendMessage(user.telegramChatId, `🚀 İşte VIP grubuna giriş linkiniz: ${inviteLink.invite_link}`);
+                    
+                    console.log(`📡 Link trimis automat pe Telegram către ${user.email} (ChatID: ${user.telegramChatId})`);
+                } catch (tgErr) {
+                    console.error("⚠️ Eroare la trimiterea mesajului pe Telegram:", tgErr.message);
+                }
+            } else {
+                console.log("⚠️ Nu s-a putut trimite mesajul: Lipsește ChatID sau Token-ul.");
+            }
+
+        } catch (subErr) {
+            console.error("❌ Eroare procesare abonament:", subErr.message);
         }
       } 
       else if (courseId) {
@@ -335,7 +329,7 @@ app.post('/api/verify-payment', async (req, res) => {
 
     res.status(400).json({ success: false, message: "Plata neconfirmată" });
   } catch (error) {
-    console.error("❌ EROARE SERVER DETALIATĂ:", error.message); 
+    console.error("❌ EROARE SERVER:", error.message); 
     res.status(500).json({ success: false, error: error.message });
   }
 });
