@@ -80,7 +80,7 @@ const LoginPage = () => {
             <div className="space-y-2">
               <Label className="text-white">E-posta</Label>
               <Input 
-                {...register("email")} // Conectăm inputul la formular
+                {...register("email")}
                 type="email" 
                 className={`bg-gray-900 border-gray-700 text-white ${errors.email ? 'border-red-500 focus:border-red-500' : ''}`}
                 placeholder="ornek@email.com"

@@ -6,10 +6,8 @@ const Footer = () => {
   return (
     <footer className="bg-black/80 border-t border-yellow-600/20 mt-20 backdrop-blur-sm">
       <div className="container mx-auto px-4 py-16">
-        {/* Am trecut la 3 coloane (grid-cols-3) pentru o centrare naturală */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-12 text-center">
           
-          {/* 1. LOGO & DESCRIERE - Centrat */}
           <div className="flex flex-col items-center space-y-4">
             <Link to="/" className="flex items-center space-x-2">
               <img 

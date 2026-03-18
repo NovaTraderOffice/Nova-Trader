@@ -188,7 +188,6 @@ setLoadingPortal(true);
                   </>
                 ) 
                 
-                /* 2. STATUS PENDING CANCEL (A dat cancel dar încă are acces - Pulsing Galben) */
                 : user?.subscriptionStatus === 'pending_cancel' ? (
                   <>
                     <div className="flex items-center justify-center md:justify-start space-x-2 mb-2">
@@ -201,7 +200,6 @@ setLoadingPortal(true);
                   </>
                 ) 
                 
-                /* 3. STATUS INACTIV SAU ORICE ALTCEVA (Gri) */
                 : (
                   <>
                      <span className="text-gray-500 font-bold uppercase tracking-widest text-sm mb-2 block">Pasif</span>

@@ -48,7 +48,6 @@ const ResetPasswordPage = () => {
             description: "Parolanız değiştirildi. Şimdi giriş yapabilirsiniz.",
             className: "bg-green-600 text-white border-none"
         });
-        // Redirecționăm la login după 2 secunde
         setTimeout(() => navigate('/giris'), 2000);
       } else {
         toast({ variant: "destructive", title: "Bağlantının Süresi Doldu", description: data.message || "Bağlantı geçersiz veya süresi dolmuş." });

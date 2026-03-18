@@ -9,7 +9,7 @@ const Header = () => {
   const { user } = useAuth();
   const isLoggedIn = !!user;
   
-  const location = useLocation(); ă
+  const location = useLocation();
 
   const getLinkClass = (path) => {
     const isActive = location.pathname === path;
