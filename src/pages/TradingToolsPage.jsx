@@ -61,7 +61,6 @@ const TradingToolsPage = () => {
 
       <div className="container mx-auto px-4 py-20">
         
-        {/* Section 1: Page Header */}
         <motion.section 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -79,7 +78,6 @@ const TradingToolsPage = () => {
           </blockquote>
         </motion.section>
 
-        {/* Section 2: Featured Tools */}
         <section className="space-y-12">
           {tools.map((tool, index) => (
             <motion.div 
@@ -114,7 +112,6 @@ const TradingToolsPage = () => {
           ))}
         </section>
 
-        {/* Section 3: Integration Suggestion */}
         <motion.section 
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
@@ -141,7 +138,6 @@ const TradingToolsPage = () => {
           </div>
         </motion.section>
         
-        {/* Footer CTA */}
         <section className="text-center mt-20">
           <Link to="/kurslar">
             <Button className="gold-gradient text-black font-bold text-lg px-8 py-6 hover:opacity-90 transition-opacity">

@@ -85,7 +85,6 @@ const LoginPage = () => {
                 className={`bg-gray-900 border-gray-700 text-white ${errors.email ? 'border-red-500 focus:border-red-500' : ''}`}
                 placeholder="ornek@email.com"
               />
-              {/* Mesaj de eroare roșu */}
               {errors.email && (
                 <p className="text-red-500 text-xs mt-1">{errors.email.message}</p>
               )}
@@ -111,7 +110,6 @@ const LoginPage = () => {
                   {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                 </button>
               </div>
-              {/* Mesaj de eroare roșu */}
               {errors.password && (
                 <p className="text-red-500 text-xs mt-1">{errors.password.message}</p>
               )}
@@ -120,7 +118,7 @@ const LoginPage = () => {
             <Button 
               type="submit" 
               className="w-full bg-yellow-500 hover:bg-yellow-600 text-black font-bold h-11 transition-all" 
-              disabled={isSubmitting} // Folosim isSubmitting din Hook Form
+              disabled={isSubmitting} 
             >
               {isSubmitting ? <Loader2 className="animate-spin mr-2" /> : 'Giriş Yap'}
             </Button>

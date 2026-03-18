@@ -20,7 +20,7 @@ const signIn = async (email, password) => {
     try {
       const response = await fetch(`${API_URL}/login`, {
         method: 'POST',
-        headers: getHeaders(), // Folosim funcția ajutătoare
+        headers: getHeaders(),
         body: JSON.stringify({ email, password }),
       });
 
@@ -42,7 +42,7 @@ const signIn = async (email, password) => {
   const signOut = () => {
     setUser(null);
     localStorage.removeItem('novaUser');
-    window.location.href = '/'; // Redirect forțat la home
+    window.location.href = '/';
   };
 
   // UPDATE

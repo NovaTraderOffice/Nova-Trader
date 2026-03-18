@@ -13,7 +13,7 @@ const Footer = () => {
           <div className="flex flex-col items-center space-y-4">
             <Link to="/" className="flex items-center space-x-2">
               <img 
-                src="https://horizons-cdn.hostinger.com/dc9b4162-1bbf-4707-8c44-a1438cae6f40/0ae6ba864687d9b0461ed709d097c19f.jpg" 
+                src="/logonova.png" 
                 alt="Nova Trader Logo" 
                 className="h-10 rounded" 
               />
@@ -24,7 +24,6 @@ const Footer = () => {
             </p>
           </div>
 
-          {/* 2. LINKURI RAPIDE - Centrat */}
           <div className="flex flex-col items-center space-y-4">
             <span className="text-yellow-500 font-bold uppercase tracking-wider text-sm">Hızlı Linkler</span>
             <div className="space-y-2">
@@ -36,7 +35,6 @@ const Footer = () => {
             </div>
           </div>
 
-          {/* 3. YASAL (LEGAL) - Centrat */}
           <div className="flex flex-col items-center space-y-4">
             <span className="text-yellow-500 font-bold uppercase tracking-wider text-sm">Yasal</span>
             <div className="space-y-2">
@@ -47,7 +45,6 @@ const Footer = () => {
           </div>
         </div>
 
-        {/* COPYRIGHT - Linie de jos */}
         <div className="border-t border-yellow-600/10 mt-12 pt-8 text-center">
           <p className="text-gray-500 text-xs tracking-widest">
             © 2026 NOVA TRADER - TÜM HAKLARI SAKLIDIR.

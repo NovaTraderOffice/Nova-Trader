@@ -8,10 +8,9 @@ const AdminDashboard = () => {
   const [courses, setCourses] = useState([]);
   const [usersList, setUsersList] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('courses'); // 'courses' sau 'users'
+  const [activeTab, setActiveTab] = useState('courses');
   const [editingCourse, setEditingCourse] = useState(null);
 
-  // 1. Tragem datele de la server (Cursuri + Utilizatori)
   const fetchData = async () => {
     setLoading(true);
     try {
@@ -35,7 +34,6 @@ const AdminDashboard = () => {
     fetchData();
   }, []);
 
-  // 2. Logica pentru Cursuri
   const handleDelete = async (id) => {
     if (!window.confirm("Sigur vrei să ștergi acest curs? Acțiunea este ireversibilă!")) return;
     try {
@@ -61,7 +59,6 @@ const AdminDashboard = () => {
     } catch (error) { console.error("Eroare la salvare:", error); }
   };
 
-  // 3. Logica pentru Utilizatori (Schimbare Rol)
   const toggleRole = async (userId, currentRole) => {
     const newRole = currentRole === 'admin' ? 'user' : 'admin';
     if (!window.confirm(`Vrei să schimbi rolul acestui utilizator în ${newRole.toUpperCase()}?`)) return;
@@ -72,7 +69,7 @@ const AdminDashboard = () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ role: newRole })
       });
-      fetchData(); // Reîncărcăm lista pentru a vedea modificarea
+      fetchData(); 
     } catch (error) {
       console.error("Eroare la schimbarea rolului:", error);
     }
@@ -99,7 +96,6 @@ const AdminDashboard = () => {
             )}
           </div>
 
-          {/* Navigare Tab-uri */}
           <div className="flex space-x-4 mb-8">
             <button 
               onClick={() => setActiveTab('courses')}
@@ -115,18 +111,14 @@ const AdminDashboard = () => {
             </button>
           </div>
 
-          {/* Conținut Tab-uri */}
           {activeTab === 'courses' ? (
-            /* TAB CURSURI */
             editingCourse ? (
-              // FORMULAR ADAUGARE/EDITARE CURS
               <div className="bg-[#121212] border border-yellow-600/30 p-6 rounded-xl mb-8">
                 <div className="flex justify-between mb-4">
                   <h2 className="text-xl font-bold text-yellow-500">{editingCourse._id ? 'Kursu Düzenle' : 'Yeni Kurs'}</h2>
                   <button onClick={() => setEditingCourse(null)} className="text-gray-400 hover:text-white"><X /></button>
                 </div>
                 <form onSubmit={handleSave} className="space-y-4">
-                  {/* Câmpurile standard */}
                   <div><label className="block text-gray-400 text-sm mb-1">Titlu Curs</label><input type="text" value={editingCourse.title} onChange={e => setEditingCourse({...editingCourse, title: e.target.value})} required className="w-full bg-[#1a1a1a] border border-gray-700 rounded p-2 text-white focus:border-yellow-500" /></div>
                   <div className="grid grid-cols-2 gap-4">
                     <div><label className="block text-gray-400 text-sm mb-1">Preț (TL)</label><input type="number" value={editingCourse.price} onChange={e => setEditingCourse({...editingCourse, price: Number(e.target.value)})} className="w-full bg-[#1a1a1a] border border-gray-700 rounded p-2 text-white" /></div>
@@ -135,7 +127,6 @@ const AdminDashboard = () => {
                   <div><label className="block text-gray-400 text-sm mb-1">Descriere</label><textarea value={editingCourse.description} onChange={e => setEditingCourse({...editingCourse, description: e.target.value})} className="w-full bg-[#1a1a1a] border border-gray-700 rounded p-2 text-white h-20" /></div>
                   <label className="flex items-center space-x-2 cursor-pointer"><input type="checkbox" checked={editingCourse.isAvailable} onChange={e => setEditingCourse({...editingCourse, isAvailable: e.target.checked})} className="w-4 h-4 accent-yellow-500" /><span className="text-gray-300">Cursul este activ</span></label>
                   
-                  {/* --- AICI ESTE SECTIUNEA NOUA PENTRU LECTII --- */}
                   <div className="mt-8 border-t border-gray-800 pt-6">
                     <div className="flex justify-between items-center mb-4">
                       <h3 className="text-lg font-bold text-white">Dersler (Lecții Video)</h3>
@@ -161,7 +152,6 @@ const AdminDashboard = () => {
                         editingCourse.lessons.map((lesson, index) => (
                           <div key={index} className="flex gap-2 items-start bg-[#1a1a1a] p-3 rounded-lg border border-gray-700">
                             <div className="flex-grow space-y-2">
-                              {/* Titlu Lectie */}
                               <input 
                                 type="text" 
                                 placeholder="Ders Başlığı (ex: Bölüm 1: Borsa Nedir?)" 
@@ -175,7 +165,6 @@ const AdminDashboard = () => {
                                 required 
                               />
                               <div className="flex gap-2">
-                                {/* Vimeo URL */}
                                 <input 
                                   type="text" 
                                   placeholder="Vimeo URL (ex: https://player.vimeo.com/video/1163897386)" 
@@ -188,7 +177,6 @@ const AdminDashboard = () => {
                                   className="flex-grow bg-[#121212] border border-gray-600 rounded p-2 text-white text-sm focus:border-yellow-500" 
                                   required 
                                 />
-                                {/* Durata */}
                                 <input 
                                   type="text" 
                                   placeholder="Süre (ex: 03:47)" 
@@ -202,7 +190,6 @@ const AdminDashboard = () => {
                                 />
                               </div>
                             </div>
-                            {/* Buton Sterge Lectie */}
                             <Button 
                               type="button" 
                               onClick={() => {
@@ -218,7 +205,6 @@ const AdminDashboard = () => {
                       )}
                     </div>
                   </div>
-                  {/* --- FINAL SECTIUNE LECTII --- */}
 
                   <div className="flex justify-end space-x-4 pt-6 mt-4 border-t border-gray-800">
                     <Button type="button" onClick={() => setEditingCourse(null)} variant="outline" className="border-gray-600 text-gray-300">İptal</Button>
@@ -227,7 +213,6 @@ const AdminDashboard = () => {
                 </form>
               </div>
             ) : (
-              // LISTA CURSURI
               <div className="grid gap-4">
                 {courses.map(course => (
                   <div key={course._id} className="bg-[#121212] border border-gray-800 rounded-lg p-4 flex items-center justify-between hover:border-yellow-600/30 transition-colors">
@@ -249,7 +234,6 @@ const AdminDashboard = () => {
               </div>
             )
           ) : (
-            /* TAB UTILIZATORI */
             <div className="bg-[#121212] border border-gray-800 rounded-xl overflow-hidden">
               <table className="w-full text-left text-sm">
                 <thead className="bg-black/40 border-b border-gray-800 text-gray-400">

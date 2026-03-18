@@ -7,7 +7,7 @@ import { API_URL } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
 
 const PaymentPage = () => {
-  const { courseId } = useParams(); // Luăm ID-ul cursului din URL
+  const { courseId } = useParams();L
   const navigate = useNavigate();
   
   const [course, setCourse] = useState(null);
@@ -16,7 +16,6 @@ const PaymentPage = () => {
   const { user } = useAuth();
   const [isProcessing, setIsProcessing] = useState(false);
 
-  // Tragem datele cursului din baza de date
   useEffect(() => {
     const fetchCourse = async () => {
       try {
@@ -56,13 +55,12 @@ const handleCheckout = async () => {
           courseId: course._id,
           title: course.title,
           price: course.price,
-          userId: user._id || user.id // Trimitem ID-ul userului ca să știm cine plătește
+          userId: user._id || user.id
         })
       });
 
       const data = await response.json();
 
-      // Dacă Stripe ne-a dat link-ul, redirecționăm!
       if (data.url) {
         window.location.href = data.url;
       } else {
@@ -83,17 +81,14 @@ const handleCheckout = async () => {
 
       <div className="min-h-[80vh] flex flex-col items-center pt-20 pb-12 px-4 bg-[#0f0f0f] text-white">
         
-        {/* Titlu Pagină */}
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold gold-text mb-2">Güvenli Ödeme</h1>
           <p className="text-gray-400">Siparişinizi tamamlamak için son bir adım kaldı.</p>
         </div>
 
-        {/* Cardul de Plată */}
         <div className="w-full max-w-md bg-[#121212] border border-yellow-600/30 rounded-xl p-6 shadow-2xl">
           <h2 className="text-xl font-bold mb-6 text-white border-b border-gray-800 pb-4">Sipariş Özeti</h2>
           
-          {/* Detalii Curs dinamic */}
           <div className="flex items-center mb-6">
             <img 
               src={course.thumbnail} 
@@ -118,7 +113,6 @@ const handleCheckout = async () => {
             </div>
           </div>
 
-          {/* Buton Plată */}
 <Button 
             disabled={isProcessing}
             onClick={handleCheckout}
@@ -134,7 +128,6 @@ const handleCheckout = async () => {
             )}
           </Button>
 
-          {/* Securitate */}
           <div className="mt-6 flex items-center justify-center text-xs text-gray-500">
             <ShieldCheck className="w-4 h-4 mr-1 text-green-600" />
             <span>Tüm işlemler 256-bit SSL şifrelemesi ile korunmaktadır.</span>

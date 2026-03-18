@@ -17,8 +17,7 @@ const TelegramModal = ({ open, onOpenChange, onSave, loading }) => {
   const [error, setError] = useState('');
 
   const handleSave = () => {
-    // International validation: starts with '+', followed by digits.
-    const phoneRegex = /^\+[0-9]{7,}$/; // Must start with + and have at least 7 digits
+    const phoneRegex = /^\+[0-9]{7,}$/;its
     if (!phoneRegex.test(phone)) {
       setError('Geçersiz format. Numara "+" ile başlamalı ve en az 7 rakam içermelidir (Örn: +1234567).');
       return;
@@ -29,7 +28,6 @@ const TelegramModal = ({ open, onOpenChange, onSave, loading }) => {
 
   const handleOpenChange = (isOpen) => {
     if (!isOpen) {
-      // Only allow closing via buttons, not by clicking outside or pressing Esc
       return;
     }
     onOpenChange(isOpen);
@@ -46,7 +44,6 @@ const TelegramModal = ({ open, onOpenChange, onSave, loading }) => {
       <DialogContent 
         className="bg-gray-900 border-yellow-500/30 text-white sm:max-w-[425px]"
         onInteractOutside={(e) => {
-          // Prevent closing on clicking outside of the modal
           e.preventDefault();
         }}
       >

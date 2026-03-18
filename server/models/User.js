@@ -22,7 +22,6 @@ const UserSchema = new mongoose.Schema({
   default: null
 },
 
-  // Verificare & Telegram
   isVerified: { type: Boolean, default: false },
   verificationCode: { type: String },
   telegramChatId: { type: String },

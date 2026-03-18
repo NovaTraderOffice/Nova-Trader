@@ -24,14 +24,11 @@ const SocialProof = () => {
       setData({ name: randomName, city: randomCity, action: randomAction });
       setIsVisible(true);
 
-      // Ascunde după 5 secunde
       setTimeout(() => setIsVisible(false), 10000);
     };
 
-    // Pornește primul toast după 5 secunde
     const initialTimer = setTimeout(showToast, 5000);
 
-    // Repetă la fiecare 20 de secunde
     const interval = setInterval(showToast, 20000);
 
     return () => {

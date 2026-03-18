@@ -11,11 +11,9 @@ const ComingSoonPage = () => {
         <title>Nova Trader | Çok Yakında</title>
       </Helmet>
 
-      {/* Efecte de fundal (Glow aurie) */}
       <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-yellow-600/10 blur-[120px] rounded-full" />
       <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-yellow-600/10 blur-[120px] rounded-full" />
 
-      {/* Continut Principal */}
       <div className="relative z-10 text-center max-w-2xl w-full">
         <div className="flex justify-center mb-8">
           <img 
@@ -35,7 +33,6 @@ const ComingSoonPage = () => {
         </p>
       </div>
 
-      {/* Footer mic */}
       <div className="absolute bottom-8 text-gray-600 text-[10px] uppercase tracking-[0.3em] font-bold">
         © 2026 NOVA TRADER
       </div>

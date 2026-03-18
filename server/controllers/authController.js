@@ -1,7 +1,6 @@
 const User = require('../models/User');
 const crypto = require('crypto');
 
-// --- REGISTER ---
 exports.register = async (req, res) => {
   try {
     const { fullName, email, telegramPhone, password } = req.body;
@@ -27,7 +26,6 @@ exports.register = async (req, res) => {
   }
 };
 
-// --- LOGIN ---
 exports.login = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -54,7 +52,6 @@ exports.login = async (req, res) => {
   }
 };
 
-// --- UPDATE PROFILE ---
 exports.updateProfile = async (req, res) => {
   try {
     const { email, fullName, telegramPhone } = req.body;

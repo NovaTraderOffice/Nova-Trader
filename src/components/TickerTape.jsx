@@ -12,7 +12,6 @@ const TickerTape = () => {
 
   const fetchCryptoPrices = async () => {
     try {
-      //API-ul CoinGecko
       const response = await fetch(
         'https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,solana&vs_currencies=usd&include_24hr_change=true'
       );

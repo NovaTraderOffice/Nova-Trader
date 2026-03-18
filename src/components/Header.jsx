@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom'; // <--- Am adăugat useLocation
+import { Link, useLocation } from 'react-router-dom';
 import { Menu, X } from 'lucide-react';
 import ProfileButton from '@/components/ProfileButton';
 import { useAuth } from '@/contexts/AuthContext';
@@ -9,14 +9,13 @@ const Header = () => {
   const { user } = useAuth();
   const isLoggedIn = !!user;
   
-  const location = useLocation(); // <--- 1. Aflăm pagina curentă
+  const location = useLocation(); ă
 
-  // 2. Funcție ajutătoare: Verifică dacă link-ul e activ
   const getLinkClass = (path) => {
     const isActive = location.pathname === path;
     return isActive 
-      ? "text-yellow-500 font-bold transition-colors" // Stil pentru activ
-      : "text-white hover:text-yellow-500 transition-colors"; // Stil normal
+      ? "text-yellow-500 font-bold transition-colors"
+      : "text-white hover:text-yellow-500 transition-colors";
   };
 
   return (
@@ -24,11 +23,10 @@ const Header = () => {
       <div className="container mx-auto px-4 py-4">
         <div className="flex items-center justify-between">
           <Link to="/" className="flex items-center space-x-2">
-            <img src="https://horizons-cdn.hostinger.com/dc9b4162-1bbf-4707-8c44-a1438cae6f40/0ae6ba864687d9b0461ed709d097c19f.jpg" alt="Nova Trader Logo" className="h-10" />
+            <img src="/logonova.png" alt="Nova Trader Logo" className="h-10" />
             <span className="text-2xl font-bold gold-text">Nova Trader</span>
           </Link>
 
-          {/* MENIUL DESKTOP */}
           <nav className="hidden md:flex items-center space-x-6">
             <Link to="/" className={getLinkClass('/')}>Ana Sayfa</Link>
             <Link to="/kurslar" className={getLinkClass('/kurslar')}>Kurslar</Link>
@@ -52,7 +50,6 @@ const Header = () => {
           </div>
         </div>
 
-        {/* MENIUL MOBIL */}
         {isMenuOpen && (
           <nav className="md:hidden mt-4 pb-4 border-t border-yellow-600/20 pt-4 space-y-3">
             <Link to="/" className={`block ${getLinkClass('/')}`} onClick={() => setIsMenuOpen(false)}>Ana Sayfa</Link>

@@ -80,7 +80,6 @@ const CourseCard = ({ course, index, handleBuyClick }) => {
         isComingSoon ? 'opacity-60 grayscale cursor-not-allowed border-gray-800' : 'hover:scale-105 border-yellow-600/20'
       }`}
     >
-      {/* Insigna de YAKINDA (Coming Soon) */}
       {isComingSoon && (
         <div className="absolute top-4 left-4 z-10 bg-black/90 text-yellow-500 text-xs font-bold px-3 py-1.5 rounded border border-yellow-500 uppercase tracking-wider shadow-lg">
           Yakında

@@ -21,18 +21,15 @@ const CoursePlayerPage = () => {
 
   const getUserId = () => user?._id || user?.id || 'guest';
 
-  // 1. ÎNCĂRCARE CURS + VERIFICARE ACCES LIVE DIN BAZA DE DATE
   useEffect(() => {
     const fetchCourseAndAccess = async () => {
       try {
         const userId = getUserId();
 
-        // A. Tragem datele cursului
         const res = await fetch(`${API_URL}/courses/${courseId}`);
         const data = await res.json();
         setCourse(data);
         
-        // B. Verificăm ACCESUL REAL din baza de date
         if (userId !== 'guest') {
           const accessRes = await fetch(`${API_URL}/my-courses/${userId}`);
           const myCourses = await accessRes.json();
@@ -41,7 +38,6 @@ const CoursePlayerPage = () => {
           setHasAccess(ownsCourse);
         }
         
-        // C. Încărcăm progresul (bara galbenă) salvat anterior
         const savedProgress = JSON.parse(localStorage.getItem(`progress_${userId}_${courseId}`)) || {};
         setProgressData(savedProgress);
 
@@ -55,7 +51,6 @@ const CoursePlayerPage = () => {
     fetchCourseAndAccess();
   }, [courseId, user]);
 
-  // 2. LOGICA VIMEO - SALVAREA PROGRESULUI ȘI BARA GALBENĂ
   useEffect(() => {
     let player;
 
@@ -78,10 +73,8 @@ const CoursePlayerPage = () => {
         const seconds = data.seconds;
         
         if (percent > 0) {
-          // Salvăm secunda
           localStorage.setItem(`time_${getUserId()}_${courseId}_${activeLesson}`, seconds);
 
-          // Mișcăm bara galbenă
           setProgressData(prev => {
             if (prev[activeLesson] === percent) return prev; 
             const newData = { ...prev, [activeLesson]: percent };
@@ -98,14 +91,12 @@ const CoursePlayerPage = () => {
         player.off('loaded');
       }
     };
-  }, [activeLesson, course, user, courseId, hasAccess]); // Adăugat hasAccess la dependențe
+  }, [activeLesson, course, user, courseId, hasAccess]);
 
 
-  // --- ECRANELE DE AȘTEPTARE ȘI SECURITATE ---
   if (loading) return <div className="min-h-screen flex items-center justify-center bg-[#0f0f0f] text-yellow-500"><Loader2 className="animate-spin w-10 h-10"/></div>;
   if (!course) return <div className="text-white text-center pt-20">Kurs bulunamadı.</div>;
 
-  // Dacă nu are cursul în baza de date, îi dăm "Jet" :)
   if (!hasAccess) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-[#0f0f0f] text-white pt-20 px-4">
@@ -120,7 +111,6 @@ const CoursePlayerPage = () => {
     );
   }
 
-  // Trucul magic pentru Vimeo
   const getCustomVimeoUrl = (rawUrl) => {
     if(!rawUrl) return "";
     let embedUrl = rawUrl;
@@ -136,7 +126,6 @@ const CoursePlayerPage = () => {
     <div className="min-h-screen bg-[#0f0f0f] pt-24 pb-10 px-4">
       <div className="container mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8">
         
-        {/* PARTEA STANGA: VIDEO */}
         <div className="lg:col-span-2">
           <div className="aspect-video bg-black rounded-xl overflow-hidden shadow-2xl border border-yellow-600/20">
              {course.lessons.length > 0 ? (
@@ -157,7 +146,6 @@ const CoursePlayerPage = () => {
           <p className="text-gray-400 mt-2">{course.description}</p>
         </div>
 
-        {/* PARTEA DREAPTA: LISTA DE LECȚII */}
         <div className="bg-[#1a1a1a] rounded-xl border border-gray-800 p-6 h-[600px] overflow-y-auto">
           <h3 className="text-xl font-bold text-white mb-4 border-b border-gray-800 pb-2">Ders İçeriği</h3>
           <div className="space-y-3">
@@ -184,7 +172,6 @@ const CoursePlayerPage = () => {
                     <span className="ml-auto text-xs opacity-70 bg-black/20 px-2 py-1 rounded">{lesson.duration}</span>
                   </button>
                   
-                  {/* BARA GALBENĂ */}
                   <div className="w-full h-1.5 bg-gray-800 rounded-b-lg overflow-hidden border-x border-b border-gray-800">
                     <div 
                       className="h-full bg-yellow-500 transition-all duration-300 ease-linear"

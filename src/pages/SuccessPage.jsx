@@ -39,17 +39,14 @@ const SuccessPage = () => {
         const data = await response.json();
 
         if (data.success && data.updatedUser) {
-          // ACTUALIZARE INSTANT: Salvăm noile date în contextul global
           updateUser(data.updatedUser);
           
           setStatus('success');
           
-          // Redirecționare elegantă după 3 secunde
           setTimeout(() => {
             if (courseId) {
               navigate('/urunlerim');
             } else {
-              // Nu mai dăm refresh la pagină, mergem direct prin router
               navigate('/profil');
             }
           }, 3000);

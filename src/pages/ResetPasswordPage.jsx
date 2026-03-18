@@ -9,7 +9,7 @@ import { Loader2, Lock, Eye, EyeOff } from 'lucide-react';
 import { API_URL } from '@/lib/api';
 
 const ResetPasswordPage = () => {
-  const { token } = useParams(); // Luăm tokenul din URL
+  const { token } = useParams();
   const navigate = useNavigate();
   const { toast } = useToast();
 

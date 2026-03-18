@@ -45,7 +45,6 @@ const ProfileButton = () => {
       <DropdownMenuContent className="w-64 bg-black/80 backdrop-blur-sm border-yellow-600/30 text-white" align="end" forceMount>
         {user ? (
           <>
-            {/* Header cu Nume - Clickabil către Profil */}
             <DropdownMenuLabel className="font-normal cursor-pointer" onClick={() => navigate('/profil')}>
               <div className="flex flex-col space-y-1 hover:bg-white/10 p-2 rounded transition-colors -mx-1">
                 <p className="text-sm font-medium leading-none text-yellow-500">
@@ -60,7 +59,6 @@ const ProfileButton = () => {
             <DropdownMenuSeparator className="bg-yellow-600/20" />
             
             <DropdownMenuGroup>
-              {/* BUTON NOU: PROFIL */}
               <DropdownMenuItem onSelect={() => navigate('/urunlerim')} className="cursor-pointer focus:bg-yellow-600/20">
                 <Package className="mr-2 h-4 w-4" />
                 <span>Ürünlerim</span>

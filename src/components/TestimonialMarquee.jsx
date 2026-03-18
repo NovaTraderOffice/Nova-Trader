@@ -70,7 +70,6 @@ const TestimonialMarquee = () => {
       </div>
 
       <div className="flex w-max animate-marquee">
-        {/* Randam lista de 2 ori pentru efect infinit */}
         {[...reviews, ...reviews, ...reviews].map((review, index) => (
           <ReviewCard key={index} review={review} />
         ))}

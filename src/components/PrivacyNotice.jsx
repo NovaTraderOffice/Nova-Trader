@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/Button';
 import { X, Cookie } from 'lucide-react';
-// Dacă nu ai instalat framer-motion, scoate importul de mai jos și animațiile
 import { motion, AnimatePresence } from 'framer-motion'; 
 
 const PrivacyNotice = () => {

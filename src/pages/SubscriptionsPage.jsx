@@ -11,7 +11,6 @@ const SubscriptionsPage = () => {
   const [loading, setLoading] = useState(false);
 
   const handleSubscribe = async () => {
-    // Dacă nu e logat, îl trimitem la login
     if (!user) {
       navigate('/giris');
       return;
@@ -19,20 +18,18 @@ const SubscriptionsPage = () => {
 
     setLoading(true);
 
-    // FIX: Definim ID-ul sigur (MongoDB folosește _id, frontend-ul uneori id)
     const actualUserId = user._id || user.id;
 
     try {
       const response = await fetch(`${API_URL}/subscriptions/create-checkout-session`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: actualUserId }) // <--- Aici folosim variabila sigură
+        body: JSON.stringify({ userId: actualUserId })
       });
 
       const data = await response.json();
 
       if (data.url) {
-        // Redirecționăm către pagina sigură de la Stripe
         window.location.href = data.url;
       } else {
         console.error("Eroare de la server:", data.error);
@@ -51,7 +48,6 @@ const SubscriptionsPage = () => {
       <Helmet><title>VIP Abonelik - NovaTrader</title></Helmet>
       
       <div className="min-h-screen bg-[#050505] text-white pt-32 pb-20 relative overflow-hidden">
-        {/* Glow de fundal */}
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-3xl h-96 bg-yellow-600/10 blur-[120px] pointer-events-none" />
 
         <div className="container mx-auto px-6 relative z-10">
@@ -66,10 +62,8 @@ const SubscriptionsPage = () => {
           </div>
 
           <div className="flex justify-center">
-            {/* CARD ABONAMENT */}
             <div className="w-full max-w-md bg-[#121212] border border-yellow-500/30 rounded-3xl p-8 shadow-2xl shadow-yellow-500/10 relative transform transition hover:-translate-y-2 hover:border-yellow-500/60 duration-300">
               
-              {/* Badge Pop-up */}
               <div className="absolute -top-5 left-1/2 -translate-x-1/2 bg-yellow-500 text-black px-6 py-1.5 rounded-full font-black text-sm uppercase tracking-widest flex items-center shadow-lg">
                 <Star className="w-4 h-4 mr-1 fill-black" /> En Popüler
               </div>

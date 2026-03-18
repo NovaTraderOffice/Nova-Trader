@@ -54,7 +54,6 @@ const ProfilePage = () => {
 const handleManageSubscription = async () => {
 setLoadingPortal(true);
  
-// FIX: Verificăm ambele variante de ID (MongoDB style vs Normal)
  const actualUserId = user?._id || user?.id;
 
  if (!actualUserId) {
@@ -66,7 +65,7 @@ setLoadingPortal(true);
    const response = await fetch(`${API_URL}/subscriptions/create-portal-session`, {
      method: 'POST',
      headers: { 'Content-Type': 'application/json' },
-     body: JSON.stringify({ userId: actualUserId }) // <--- Aici trimitem ID-ul corect
+     body: JSON.stringify({ userId: actualUserId })
    });
    const data = await response.json();
    if (data.url) {

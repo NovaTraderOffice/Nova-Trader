@@ -18,13 +18,12 @@ useEffect(() => {
       if (!user) return;
       
       try {
-        // Folosim ruta NOUĂ care trage datele mereu fresh de la server
         const userId = user._id || user.id;
         const response = await fetch(`${API_URL}/my-courses/${userId}`);
         
         if (response.ok) {
           const data = await response.json();
-          setMyCourses(data); // Punem cursurile pe ecran
+          setMyCourses(data);
         }
       } catch (error) {
         console.error("Eroare la preluarea cursurilor:", error);

@@ -16,7 +16,6 @@ const Newsletter = () => {
     
     setLoading(true);
 
-    // Simulăm un request la server
     setTimeout(() => {
       setLoading(false);
       setSubscribed(true);
@@ -31,7 +30,6 @@ const Newsletter = () => {
 
   return (
     <section className="py-20 relative overflow-hidden">
-      {/* Background Glow Effect */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-yellow-500/10 blur-[120px] rounded-full pointer-events-none" />
 
       <div className="container mx-auto px-4 relative z-10">

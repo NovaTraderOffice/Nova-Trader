@@ -1,6 +1,5 @@
 const { Resend } = require('resend');
 
-// Inițializăm Resend cu cheia din .env
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 const sendEmail = async (options) => {
