@@ -7,7 +7,7 @@ import { API_URL } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
 
 const PaymentPage = () => {
-  const { courseId } = useParams();L
+  const { courseId } = useParams();
   const navigate = useNavigate();
   
   const [course, setCourse] = useState(null);
